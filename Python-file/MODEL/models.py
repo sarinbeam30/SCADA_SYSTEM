@@ -4326,13 +4326,13 @@ class IndoorPositioingSystemDevice_Connection(Connection):
                 addr = t.device.address
                 self.client[addr].setRoom(string(value))
             
-            if t.address == "x_ccord":
+            if t.address == "x_coord":
                 addr = t.device.address
-                self.client[addr].setXCoord(float(value))
+                self.client[addr].setXCoord(string(value))
 
-            if t.address == "y_ccord":
+            if t.address == "y_coord":
                 addr = t.device.address
-                self.client[addr].setYCoord(float(value))		
+                self.client[addr].setYCoord(string(value))		
             self.write_dict[tn] = [False, 0]
     
     def start(self, threadName = None):
@@ -4385,7 +4385,8 @@ class IndoorPositioingSystemDevice_Connection(Connection):
 
                 for d in self.device_dict:
                     l = self.client[d]
-                    data = l.getDataFromRASPI()
+                    data = json.loads(l.getDataFromRASPI())
+                    print("TYPE OF DATA : ", type(data))
                     if data == -1:
                         continue
                     for t in self.device_dict[d]:
@@ -4393,6 +4394,7 @@ class IndoorPositioingSystemDevice_Connection(Connection):
                             continue
                         if t in oldData and oldData[t] == data[t]:
                             continue
+
                         oldData[t] = data[t]
                         tag = self.device_dict[d][t]
                         value = data[t]

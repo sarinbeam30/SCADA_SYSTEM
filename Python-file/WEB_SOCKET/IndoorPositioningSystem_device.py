@@ -16,7 +16,7 @@ class IndoorPositioningSystem_SCADA():
             bytes_text = s.recv(2048)
             string_text = bytes_text.decode("utf-8") 
             json_text = json.dumps(string_text)
-            result = json_text
+            result = string_text
             s.close()
         except Exception as x:
             print(x)
