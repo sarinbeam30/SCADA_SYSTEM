@@ -36,7 +36,8 @@ class IPS_NODE ():
         return json_data
     
     
-    def sendDataToServer(self):
+    def sendDataToServer(self, API_ENDPOINT):
+        self.API_ENDPOINT = API_ENDPOINT
         headers = {'Content-type': 'application/json'}
         r = requests.post(url=self.API_ENDPOINT, json=self.setJsonData(), headers=headers)
         print('STATUS_CODE : ' + str(r.status_code))
@@ -64,4 +65,5 @@ class IPS_NODE ():
 if __name__== "__main__":
     BT_1 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
     # BT_1 = IPS_NODE(IP_address="127.0.0.1", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
-    BT_1.sendDataToWebSocket()
+    # BT_1.sendDataToWebSocket()
+    BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
