@@ -1,4 +1,12 @@
-import requests, json, socket
+import requests, json, socket, random, time, sys, os, paho.mqtt.client as client
+from datetime import datetime
+
+# MQTT_INITIALIZE
+hostname = "192.168.4.150"
+port = 1883
+ID = sys.argv[0]+str(os.getpid())
+mclient = client.Client(ID)
+mclient.connect(hostname, port=1883,keepalive=60)
 
 class IPS_NODE ():
     def __init__(self, IP_address="192.168.4.150",device_name="BT_TAG_1",location="ABC Building", floor=7,room="ECC-804"):
@@ -14,14 +22,14 @@ class IPS_NODE ():
         self.y_coord = 5.678
     
     def setXcoord(self):
-        self.x_coord = 9.999
+        self.x_coord = (float("{:.3f}".format(random.uniform(0.0, 10.0))))
     
     def setYcoord(self):
-        self.y_coord = 10.000
+        self.y_coord = (float("{:.3f}".format(random.uniform(0.0, 10.0))))
     
     def setJsonData(self):
         dummy_data = {
-            "DEVICE_NAME" : self.device_name,
+            "BT_TAG_DEVICE_NAME" : self.device_name,
             "LOCATION" : self.location,
             "LATITUDE" : self.latitude,
             "LONGTITUDE" : self.longtitude,
@@ -32,9 +40,14 @@ class IPS_NODE ():
         }
 
         json_data = json.dumps(dummy_data)
-        print("DATA : " , json_data)
+        print(type(json_data))
+        # print("DATA : " , json_data)
         return json_data
     
+    def sendDataToMQTT(self):
+        mclient.publish("TOPIC/BT_TAG_1", self.setJsonData())
+        # mclient.publish("TOPIC/BT_TAG_1", str("PAYLOAD--1"))
+        print("---- SEND_DATA_TO_MQTT_LEAW ----")
     
     def sendDataToServer(self, API_ENDPOINT):
         self.API_ENDPOINT = API_ENDPOINT
@@ -47,11 +60,12 @@ class IPS_NODE ():
     
     def sendDataToWebSocket(self):
         s = socket.socket()
+        print(type(self.setJsonData()))
         print("Socket sucessfully created")
-        port = 12300
-        IP_ADDR = "192.168.4.209"
+        port = 15000
+        # IP_ADDR = "192.168.4.19"
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind(('', port))
+        s.bind(('0.0.0.0', port))
         s.listen(5)
         print("socket is listening")
 
@@ -63,7 +77,16 @@ class IPS_NODE ():
 
 
 if __name__== "__main__":
-    BT_1 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
-    # BT_1 = IPS_NODE(IP_address="127.0.0.1", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
-    # BT_1.sendDataToWebSocket()
-    BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+
+    while True :
+        BT_1 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
+        # BT_1 = IPS_NODE(IP_address="127.0.0.1", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
+        
+        random.seed()
+        BT_1.setXcoord()
+        BT_1.setYcoord()
+        # BT_1.sendDataToMQTT()
+        time.sleep(4)
+
+        BT_1.sendDataToWebSocket()
+        # BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')

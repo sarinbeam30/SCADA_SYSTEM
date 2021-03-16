@@ -297,7 +297,6 @@ class OPC_UA_Connection(Connection):
 from drivers.datapool import GenericPool
 class ReplayWorker():
     def __init__(self,replayer):
-        import asyncio
         self.replayer=replayer
         self.pool = GenericPool(self.replay_callback)
         loop = asyncio.get_event_loop()
@@ -689,7 +688,7 @@ def excel_replay_driver(port_id = 8):
 
     conn_1 = Excel_Replay_Connection() #(port.detail["address"],port.detail["port"],[],login,pw)
 		
-    #pool=ReplayWorker(conn_1)
+    pool=ReplayWorker(conn_1)
 	
     #asyncio.ensure_future(pool.redis_receive_loop())
     print("start listener")
@@ -4253,7 +4252,7 @@ def DysonFAN_driver(port_id = 5):
 
 import string
 from drivers.extra_driver.IndoorPositioningSystem_device import IndoorPositioningSystem_SCADA
-class IndoorPositioningSystemDevice_Connection(Connection):
+class IndoorPositioingSystemDevice_Connection(Connection):
     def __init__(self, devices=[], redis_client=None):
         
         Connection.__init__(self, "", "", redis_client)
@@ -4386,20 +4385,10 @@ class IndoorPositioningSystemDevice_Connection(Connection):
 
                 for d in self.device_dict:
                     l = self.client[d]
-                    # print("PAYLOAD_1 : " + str(l.message_receive))
-
-                    # l.start_MQTT_service()
-                    # print("PAYLOAD_2 : " + str(l.message_receive))
-                    # # print("PAYLOAD_3 : " + str(l.on_message()))
-                    # print("PAYLOAD_4 : " + str(l.return_payload()))
-                    # l.end_MQTT_service()
-
-                    data_from_rasi_pi = l.getDataFromRASPI_SOCKET()
-                    print(data_from_rasi_pi)
-                    print("TYPE OF DATA : ", type(data_from_rasi_pi))
-                    if data_from_rasi_pi == -1:
+                    data = json.loads(l.getDataFromRASPI())
+                    print("TYPE OF DATA : ", type(data))
+                    if data == -1:
                         continue
-                    data = json.loads(data_from_rasi_pi)
                     for t in self.device_dict[d]:
                         if t not in data:
                             continue
@@ -4408,14 +4397,11 @@ class IndoorPositioningSystemDevice_Connection(Connection):
 
                         oldData[t] = data[t]
                         tag = self.device_dict[d][t]
-                        print("TAG : " , tag)
                         value = data[t]
 
                         if value != None:
                             if self.mapping:
                                 name = self.mappingTag(tag.full_name)
-                                print("NAME_TAG : " + str(name))
-
                                 res = loop.run_until_complete(pub.set('tag:'+str(name), value))
                             else:
                                 res = loop.run_until_complete(pub.set('tag:'+str(tag.full_name), value)) #await 
@@ -4426,7 +4412,7 @@ class IndoorPositioningSystemDevice_Connection(Connection):
             print("End")
 
 @app.task
-def IndoorPositioningSystemDevice_driver(port_id = 5):
+def IndoorPositioingSystemDevice_driver(port_id = 5):
     print('setting modbus tcp')
     from drivers.worker import ModbusPool as MP
     import asyncio
@@ -4436,7 +4422,7 @@ def IndoorPositioningSystemDevice_driver(port_id = 5):
     port ,devices ,n = get_from_DB(port_id = port_id)
 
     # ASK P'NAME
-    conn_1 = IndoorPositioningSystemDevice_Connection([])
+    conn_1 = IndoorPositioingSystemDevice_Connection([])
 
     print("Start")
 
