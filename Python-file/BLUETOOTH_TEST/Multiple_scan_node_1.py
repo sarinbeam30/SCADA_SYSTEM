@@ -152,94 +152,113 @@ class BTScan():
         x = (C*E - F*B) / (E*A - B*D)
         y = (C*D - A*F) / (B*D - A*E)
         return y
+
+    def rssilistchecker(self, rssi, devname, rssidict):
+        if(devname in rssidict):
+            keyval = rssidict.get(devname)
+            if(isinstance(keyval, list)):
+                keyval.append(rssi)
+            else:
+                rssidict[devname] = list((rssi))
+        else:
+            newlist = [rssi]
+            rssidict[devname] = newlist
+        return rssidict
     
     def scanDevices(self):
         while(1):
-            rssilist = []
+            rssidict = {}
             for i in range(20):
                 devices = self.scanner.scan(0.5)
                 for dev in devices:
                     #print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
                     for (adtype, desc, value) in dev.getScanData():
                         if(desc == "Complete Local Name"):
-                            if(value == self.devicename):
-                                #scanner.connect("41:30:28:36:74:86")
-                                print("")
-                                print(" %s = %s" % (desc, value))
-                                self.devicename = str(value)
-                                # for i in range(20):
-                                #     print(" Device RSSI no.%d=%d" % (i,int(dev.rssi)))
-                                #     time.sleep(0.1)
-                                #     i = i + 1
-                                #if(value == "Mi Smart Band 4"):
-                                print(" Device addr = ", dev.addr)
-                                print(" Device RSSI = %d" % (int(dev.rssi)))
-                                rssilist.append(int(dev.rssi))
-                                rssi = dev.rssi
-                                ratio = (-76 - rssi)/(10.0 * 2.0)
-                                distance = 10**ratio 
-                                print(" Distance (m) = %.2f" % distance)
-                                print("")
-                            # else:
-                            #     pass
-            # print(rssilist)
-            if len(rssilist) == 0:
-                self.node1distance = 0.0
-            else:
-                rssi = max(rssilist, key = rssilist.count)
+                            #scanner.connect("41:30:28:36:74:86")
+                            print("")
+                            print(" %s = %s" % (desc, value))
+                            self.devicename = str(value)
+                            tempdict = self.rssilistchecker(dev.rssi, value, rssidict)
+                            rssidict = tempdict
+                            print(" Device addr = ", dev.addr)
+                            print(" Device RSSI = %d" % (int(dev.rssi)))
+
+                            # rssilist.append(int(dev.rssi))
+                            rssi = dev.rssi
+                            ratio = (-71 - rssi)/(10.0 * 2.0)
+                            distance = 10**ratio 
+                            print(" Distance (m) = %.2f" % distance)
+                            print("")
+            # print(rssidict)
+            for key in rssidict:
+                print(key, ":", rssidict[key])
+                           
+                rssi = max(rssidict[key], key = rssidict[key].count)
                 ratio = (-71 - rssi)/(10.0 * 2.0)
                 distance = 10**ratio 
-                self.node1distance = "{:.2f}".format(distance)
-
-            print("Distance (node1): ", self.node1distance) 
-           
-
-            ts = calendar.timegm(time.gmtime())
-            readable = datetime.datetime.fromtimestamp(ts).isoformat()
-            print(readable)
-            print("")
-
-            mclient.publish("Test/request", 1)
-            time.sleep(1)
-            mclient.publish("Test/request", 2)
-            time.sleep(5)
+                distance = "{:.2f}".format(distance)
+                print("%s's distance: %.2f\n" % (key,float(distance)))
+            time.sleep(1)    
             
-            #r1 = node1, r2 = node2, r3 = node3
-            Xcoord = self.TrilaterationLocateX(float(self.node1distance),float(self.node2distance),float(self.node3distance))
-            Xcoord = "{:.4f}".format(Xcoord)
-            Xcoord = float(Xcoord)
-            self.sender.setXcoord(Xcoord)
 
-            Ycoord = self.TrilaterationLocateY(float(self.node1distance),float(self.node2distance),float(self.node3distance))
-            Ycoord = "{:.4f}".format(Ycoord)
-            Ycoord = float(Ycoord)
-            self.sender.setYcoord(Ycoord)
+#temp code for scandevices
+# if len(rssilist) == 0:
+#     self.node1distance = 0.0
+# else:
+#     rssi = max(rssilist, key = rssilist.count)
+#     ratio = (-71 - rssi)/(10.0 * 2.0)
+#     distance = 10**ratio 
+#     self.node1distance = "{:.2f}".format(distance)
 
-            # mclient.publish("Test/request", str("Requesting"))
+# print("Distance (node1): ", self.node1distance) 
 
-            if(self.node1distance == 0.0):
-                print("Node1 distance can't be 0")
-                pass
-            elif(self.node2distance == 0.0):
-                print("Node2 distance can't be 0")
-                pass
-            elif(self.node3distance == 0.0):
-                print("Node3 distance can't be 0")
-                pass
-            else:
-                print("X: %f, Y: %f of %s" % (Xcoord, Ycoord, self.devicename))
-                # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/')
-                self.sender.sendDataToWebSocket();
-                pass
-            # mclient.connect("localhost", port=1883,keepalive=60)
-            # mclient.subscribe("Test/+")
-            # mclient.on_message = on_message
-            # mclient.loop_forever()
 
-            rssilist.clear() 
-            self.node2distance = 0.0
-            self.node3distance = 0.0
-            time.sleep(1)
+# ts = calendar.timegm(time.gmtime())
+# readable = datetime.datetime.fromtimestamp(ts).isoformat()
+# print(readable)
+# print("")
+
+# mclient.publish("Test/request", 1)
+# time.sleep(1)
+# mclient.publish("Test/request", 2)
+# time.sleep(5)
+
+# #r1 = node1, r2 = node2, r3 = node3
+# Xcoord = self.TrilaterationLocateX(float(self.node1distance),float(self.node2distance),float(self.node3distance))
+# Xcoord = "{:.4f}".format(Xcoord)
+# Xcoord = float(Xcoord)
+# self.sender.setXcoord(Xcoord)
+
+# Ycoord = self.TrilaterationLocateY(float(self.node1distance),float(self.node2distance),float(self.node3distance))
+# Ycoord = "{:.4f}".format(Ycoord)
+# Ycoord = float(Ycoord)
+# self.sender.setYcoord(Ycoord)
+
+# # mclient.publish("Test/request", str("Requesting"))
+
+# if(self.node1distance == 0.0):
+#     print("Node1 distance can't be 0")
+#     pass
+# elif(self.node2distance == 0.0):
+#     print("Node2 distance can't be 0")
+#     pass
+# elif(self.node3distance == 0.0):
+#     print("Node3 distance can't be 0")
+#     pass
+# else:
+#     print("X: %f, Y: %f of %s" % (Xcoord, Ycoord, self.devicename))
+#     # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/')
+#     self.sender.sendDataToWebSocket();
+#     pass
+# # mclient.connect("localhost", port=1883,keepalive=60)
+# # mclient.subscribe("Test/+")
+# # mclient.on_message = on_message
+# # mclient.loop_forever()
+
+# rssilist.clear() 
+# self.node2distance = 0.0
+# self.node3distance = 0.0
+# time.sleep(1)
 
 def scanDevices1():
     devices = scanner.scan(5.0)

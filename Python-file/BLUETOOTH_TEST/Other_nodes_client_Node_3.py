@@ -26,7 +26,7 @@ class ScanDelegate(DefaultDelegate):
 
 def on_message(client,userdata,message):
     if(message.topic == "Test/request"):
-        print("Device request: %s" % str(message.payload.decode('utf-8') ))
+        # print("Device request: %s" % str(message.payload.decode('utf-8') ))
         if(str(message.payload.decode('utf-8')) == "2"):
             print("Request: %s" % str(message.payload.decode('utf-8') ))
             devn = btscanner.getDevicename()
@@ -76,7 +76,7 @@ class BTScanOther():
     def scanDevices(self):
         while(1):
             rssilist = []
-            for i in range(2):
+            for i in range(20):
                 devices = self.scanner.scan(0.5)
                 for dev in devices:
                     #print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
@@ -96,24 +96,23 @@ class BTScanOther():
                                 print(" Device RSSI = %d" % (int(dev.rssi)))
                                 rssilist.append(int(dev.rssi))
                                 rssi = dev.rssi
-                                ratio = (-49 - rssi)/(10.0 * 2.0)
+                                ratio = (-69 - rssi)/(10.0 * 2.0)
                                 distance = 10**ratio 
                                 print(" Distance (m) = %.2f" % distance)
                                 print("")
                                 # else:
                                 #     pass
-                time.sleep(1)
             print(rssilist)
             if len(rssilist) == 0:
                 pass
             else:
                 rssi = max(rssilist, key = rssilist.count)
-                ratio = (-49 - rssi)/(10.0 * 2.0)
+                ratio = (-69 - rssi)/(10.0 * 2.0)
                 distance = 10**ratio 
                 self.node3distance =  "{:.4f}".format(distance)
             print("Distance: ", self.node3distance) 
 
-            # self.sendtoNode1(str(self.devicename), str(nodename), float(self.node2distance), str(readable))
+            # self.sendtoNode1(str(self.devicename), str(nodename), float(self.node3distance), str(readable))
             # print("Data sent to Node 1")
 
             rssilist.clear()
@@ -146,9 +145,10 @@ def scanDevices():
     time.sleep(2)
 
 if __name__ == "__main__":
-    # btscanner.setDevicename("RMX50-5G")
+
     btscanner = BTScanOther()
-    btscanner.setDevicename("ห้องทำงาน")
+    # btscanner.setDevicename("ห้องทำงาน")
+    btscanner.setDevicename("RMX50-5G")
 
     mclient.subscribe("Test/request")
     mclient.on_message = on_message
