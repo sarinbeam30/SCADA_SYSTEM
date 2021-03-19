@@ -52,6 +52,9 @@ class IPS_NODE ():
         self.room = room
         self.x_coord = 0
         self.y_coord = 0
+
+    def setDevice_name(self, name):
+        self.device_name = name
     
     def setXcoord(self, x):
         # self.x_coord = 9.999
@@ -63,7 +66,7 @@ class IPS_NODE ():
 
     def setJsonData(self):
         dummy_data = {
-            "DEVICE_NAME" : self.device_name,
+            "BT_TAG_DEVICE_NAME" : self.device_name,
             "LOCATION" : self.location,
             "LATITUDE" : self.latitude,
             "LONGTITUDE" : self.longtitude,
@@ -90,7 +93,7 @@ class IPS_NODE ():
     def sendDataToWebSocket(self):
         s = socket.socket()
         print("Socket successfully created")
-        port = 12300
+        port = 15000
         IP_ADDR = "192.168.4.19"
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind(('', port))
@@ -190,6 +193,8 @@ class BTScan():
                             print(" Distance (m) = %.2f" % distance)
                             print("")
             # print(rssidict)
+            self.sender.setXcoord(1)
+            self.sender.setYcoord(2)
             for key in rssidict:
                 print(key, ":", rssidict[key])
                            
@@ -198,6 +203,13 @@ class BTScan():
                 distance = 10**ratio 
                 distance = "{:.2f}".format(distance)
                 print("%s's distance: %.2f\n" % (key,float(distance)))
+
+                self.sender.setDevice_name(str(key))
+                # self.sender.sendDataToWebSocket();
+                # self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                self.sender.sendDataToWebSocket()
+                print("\n")   
+                time.sleep(10)
             time.sleep(1)    
             
 
