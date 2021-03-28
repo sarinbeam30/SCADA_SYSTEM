@@ -12,14 +12,18 @@ class IPS_NODE ():
     def __init__(self, IP_address="192.168.4.171",device_name="BT_TAG_2",location="ABC Building", floor=7,room="ECC-804"):
         self.API_ENDPOINT = "http://192.168.4.150:5678/getDATA"
         self.IP_address = IP_address
-        self.device_name = device_name
+        self.bt_tag_device_name = device_name
+        self.bt_tag_owner = 'Admin_BT_TAG_2'
         self.location = location
-        self.latitude = 1.1111
-        self.longtitude = 2.2222
+        self.latitude = 45.000
+        self.longtitude = 49.000
         self.floor = floor
         self.room = room
         self.x_coord = 2.222
         self.y_coord = 2.222
+    
+    def setBtTagOwner(self, name):
+        self.bt_tag_owner = name
     
     def setXcoord(self):
         random.seed(datetime.now())
@@ -31,7 +35,8 @@ class IPS_NODE ():
     
     def setJsonData(self):
         dummy_data = {
-            "BT_TAG_DEVICE_NAME" : self.device_name,
+            "BT_TAG_DEVICE_NAME" : self.bt_tag_device_name,
+            "BT_TAG_OWNER" : self.bt_tag_owner,
             "LOCATION" : self.location,
             "LATITUDE" : self.latitude,
             "LONGTITUDE" : self.longtitude,
@@ -45,7 +50,7 @@ class IPS_NODE ():
         print("DATA : " , json_data)
         return json_data
 
-    def sendDataToRabbitMQTT(self):
+    def sendDataToMQTT(self):
         # mclient.publish("TOPIC/BT_TAG_2", str("PAYLOAD--2"))
         mclient.publish("TOPIC/BT_TAG_2", self.setJsonData())
         print("---- SEND_DATA_TO_MQTT_LEAW ----")
@@ -80,12 +85,14 @@ if __name__== "__main__":
 
     while True:
         BT_2 = IPS_NODE(IP_address="192.168.4.171", device_name="BT_TAG_2", location="AAA Building", floor=7,room="ECC-809")
-        # BT_1 = IPS_NODE(IP_address="127.0.0.1", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
+        # BT_2 = IPS_NODE(IP_address="127.0.0.1", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
         random.seed()
         BT_2.setXcoord()
         BT_2.setYcoord()
+        BT_2.setBtTagOwner("window_1234")
         # BT_2.sendDataToRabbitMQTT()
-        time.sleep(4)
+        time.sleep(10)
 
-        BT_2.sendDataToWebSocket()
-        # BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+        # BT_2.sendDataToWebSocket()
+        # BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+        BT_2.sendDataToServer('http://127.0.0.1:5050/getLocation/')
