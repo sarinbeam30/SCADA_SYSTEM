@@ -109,8 +109,10 @@ class IPS_NODE ():
 class BTScan():
     def __init__(self):
         self.node1distance = 0.0
-        self.node2distance = 0.0
-        self.node3distance = 0.0
+        self.node2distance = 1.0
+        self.node3distance = 1.0
+        # self.node2distance = {}
+        # self.node3distance = {}
         self.scanner = Scanner()
         self.devicename = "" #default
         self.sender = IPS_NODE(IP_address="192.168.4.150", device_name=str(self.devicename), location="ABC Building", floor=7,room="ECC-804")
@@ -193,8 +195,8 @@ class BTScan():
                             print(" Distance (m) = %.2f" % distance)
                             print("")
             # print(rssidict)
-            self.sender.setXcoord(1)
-            self.sender.setYcoord(2)
+            # self.sender.setXcoord(1)
+            # self.sender.setYcoord(2)
             for key in rssidict:
                 print(key, ":", rssidict[key])
                            
@@ -204,152 +206,47 @@ class BTScan():
                 distance = "{:.2f}".format(distance)
                 print("%s's distance: %.2f\n" % (key,float(distance)))
 
-                self.sender.setDevice_name(str(key))
-                # self.sender.sendDataToWebSocket();
-                # self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-                self.sender.sendDataToWebSocket()
+                ts = calendar.timegm(time.gmtime())
+                readable = datetime.datetime.fromtimestamp(ts).isoformat()
+                print(readable)
+                print("")
+
+                mclient.publish("Test/request", 1)
+                time.sleep(1)
+                mclient.publish("Test/request", 2)
+                time.sleep(5)
+                
+                #r1 = node1, r2 = node2, r3 = node3
+                Xcoord = self.TrilaterationLocateX(float(distance),float(self.node2distance),float(self.node3distance))
+                Xcoord = "{:.4f}".format(Xcoord)
+                Xcoord = float(Xcoord)
+                self.sender.setXcoord(Xcoord)
+
+                Ycoord = self.TrilaterationLocateY(float(distance),float(self.node2distance),float(self.node3distance))
+                Ycoord = "{:.4f}".format(Ycoord)
+                Ycoord = float(Ycoord)
+                self.sender.setYcoord(Ycoord)
+
+                # mclient.publish("Test/request", str("Requesting"))
+
+                if(distance == 0.0):
+                    print("Node1 distance can't be 0")
+                    pass
+                elif(self.node2distance == 0.0):
+                    print("Node2 distance can't be 0")
+                    pass
+                elif(self.node3distance == 0.0):
+                    print("Node3 distance can't be 0")
+                    pass
+                else:
+                    print("X: %f, Y: %f of %s" % (Xcoord, Ycoord, self.devicename))
+                    # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/')
+                    # self.sender.setDevice_name(str(key))
+                    # self.sender.sendDataToWebSocket();
+                    pass
                 print("\n")   
                 time.sleep(10)
             time.sleep(1)    
-            
-
-#temp code for scandevices
-# if len(rssilist) == 0:
-#     self.node1distance = 0.0
-# else:
-#     rssi = max(rssilist, key = rssilist.count)
-#     ratio = (-71 - rssi)/(10.0 * 2.0)
-#     distance = 10**ratio 
-#     self.node1distance = "{:.2f}".format(distance)
-
-# print("Distance (node1): ", self.node1distance) 
-
-
-# ts = calendar.timegm(time.gmtime())
-# readable = datetime.datetime.fromtimestamp(ts).isoformat()
-# print(readable)
-# print("")
-
-# mclient.publish("Test/request", 1)
-# time.sleep(1)
-# mclient.publish("Test/request", 2)
-# time.sleep(5)
-
-# #r1 = node1, r2 = node2, r3 = node3
-# Xcoord = self.TrilaterationLocateX(float(self.node1distance),float(self.node2distance),float(self.node3distance))
-# Xcoord = "{:.4f}".format(Xcoord)
-# Xcoord = float(Xcoord)
-# self.sender.setXcoord(Xcoord)
-
-# Ycoord = self.TrilaterationLocateY(float(self.node1distance),float(self.node2distance),float(self.node3distance))
-# Ycoord = "{:.4f}".format(Ycoord)
-# Ycoord = float(Ycoord)
-# self.sender.setYcoord(Ycoord)
-
-# # mclient.publish("Test/request", str("Requesting"))
-
-# if(self.node1distance == 0.0):
-#     print("Node1 distance can't be 0")
-#     pass
-# elif(self.node2distance == 0.0):
-#     print("Node2 distance can't be 0")
-#     pass
-# elif(self.node3distance == 0.0):
-#     print("Node3 distance can't be 0")
-#     pass
-# else:
-#     print("X: %f, Y: %f of %s" % (Xcoord, Ycoord, self.devicename))
-#     # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/')
-#     self.sender.sendDataToWebSocket();
-#     pass
-# # mclient.connect("localhost", port=1883,keepalive=60)
-# # mclient.subscribe("Test/+")
-# # mclient.on_message = on_message
-# # mclient.loop_forever()
-
-# rssilist.clear() 
-# self.node2distance = 0.0
-# self.node3distance = 0.0
-# time.sleep(1)
-
-def scanDevices1():
-    devices = scanner.scan(5.0)
-    for dev in devices:
-        #print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
-        for (adtype, desc, value) in dev.getScanData():
-            if(desc == "Complete Local Name"):
-                if(value == ""):
-                    pass
-                else:
-                    print("")
-                    print(" %s = %s" % (desc, value))
-                    # for i in range(20):
-                    #     print(" Device RSSI no.%d=%d" % (i,int(dev.rssi)))
-                    #     time.sleep(0.1)
-                    #     i = i + 1
-                    #if(value == "Mi Smart Band 4"):
-                    print(" Device RSSI=%d" % (int(dev.rssi)))
-                    rssi = dev.rssi
-                    ratio = (-49 - rssi)/(10.0 * 2.0)
-                    distance = 10**ratio 
-                    print(" Distance (m) = %.2f" % distance)
-                    print("")
-                    time.sleep(3)
-                    #else:
-                        #pass
-    time.sleep(2)
-
-def scanDevices2():
-    while(1):
-        rssilist = []
-        for i in range(5):
-            devices = scanner.scan(0.5)
-            for dev in devices:
-                #print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
-                for (adtype, desc, value) in dev.getScanData():
-                    if(desc == "Complete Local Name"):
-                        # if(value == "ห้องทำงาน"):
-                            #scanner.connect("41:30:28:36:74:86")
-                        print("")
-                        print(" %s = %s" % (desc, value))
-                        # for i in range(20):
-                        #     print(" Device RSSI no.%d=%d" % (i,int(dev.rssi)))
-                        #     time.sleep(0.1)
-                        #     i = i + 1
-                        #if(value == "Mi Smart Band 4"):
-                        print(" Device addr = ", dev.addr)
-                        print(" Device RSSI = %d" % (int(dev.rssi)))
-                        rssilist.append(int(dev.rssi))
-                        rssi = dev.rssi
-                        ratio = (-49 - rssi)/(10.0 * 2.0)
-                        distance = 10**ratio 
-                        print(" Distance (m) = %.2f" % distance)
-                        print("")
-                           
-                        # else:
-                        #     pass
-            time.sleep(1)
-        print(rssilist)
-        if len(rssilist) == 0:
-            distance_mode = 0
-        else:
-            distance_mode =  max(rssilist, key = rssilist.count)
-
-        print("Mode: ", distance_mode)
-
-        
-                            #r1 = node1, r2 = node2, r3 = node3
-        Xcoord = TrilaterationLocateX(0,0,distance_mode,0,10.0,node2distance,10.0,10.0,node3distance)
-        BT_1.setXcoord(Xcoord)
-
-        Ycoord = TrilaterationLocateY(0,0,distance_mode,0,10.0,node2distance,10.0,10.0,node3distance)
-        BT_1.setYcoord(Ycoord)
-
-        BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-
-        rssilist.clear() 
-
-    pass
 
 
 if __name__ == '__main__':
