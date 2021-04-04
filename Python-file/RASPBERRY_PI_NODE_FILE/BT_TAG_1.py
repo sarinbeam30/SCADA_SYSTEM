@@ -5,8 +5,8 @@ from datetime import datetime
 hostname = "192.168.4.150"
 port = 1883
 ID = sys.argv[0]+str(os.getpid())
-mclient = client.Client(ID)
-mclient.connect(hostname, port=1883,keepalive=60)
+# mclient = client.Client(ID)
+# mclient.connect(hostname, port=1883,keepalive=60)
 
 class IPS_NODE ():
     def __init__(self, IP_address="192.168.4.150",device_name="BT_TAG_1",location="ABC Building", floor=7,room="ECC-804"):
@@ -24,6 +24,12 @@ class IPS_NODE ():
     
     def setBtTagOwner(self, name):
         self.bt_tag_owner = name
+    
+    def setLatitude(self, latitude):
+        self.latitude = latitude
+    
+    def setLongtitude(self, longtitude):
+        self.long = longtitude
     
     def setXcoord(self):
         self.x_coord = (float("{:.3f}".format(random.uniform(0.0, 10.0))))
@@ -46,7 +52,7 @@ class IPS_NODE ():
 
         json_data = json.dumps(dummy_data)
         # print(type(json_data))
-        print("DATA : " , json_data)
+        # print("DATA : " , json_data)
         return json_data
     
     def sendDataToMQTT(self):
@@ -58,7 +64,9 @@ class IPS_NODE ():
         self.API_ENDPOINT = API_ENDPOINT
         headers = {'Content-type': 'application/json'}
         r = requests.post(url=self.API_ENDPOINT, json=self.setJsonData(), headers=headers)
+        print("----------*** (BT_TAG_1) SEND DATA TO WEB SERVER LEAW ***----------")
         print('STATUS_CODE : ' + str(r.status_code))
+
 
         # r.text is the content of the response in Unicode
         # pastebin_url = r.text
@@ -78,6 +86,7 @@ class IPS_NODE ():
             c, addr = s.accept()
             print ('Got connection from', addr )
             c.send(bytes(self.setJsonData(), encoding='utf8'))
+            print("----------*** (BT_TAG_1) SEND DATA TO SCADA LEAW ***----------")
             c.close()
 
 
@@ -91,9 +100,11 @@ if __name__== "__main__":
         BT_1.setXcoord()
         BT_1.setYcoord()
         BT_1.setBtTagOwner("sarin_beam30")
+        BT_1.setLatitude(13.7299)
+        BT_1.setLongtitude(100.7782)
         # BT_1.sendDataToMQTT()
-        time.sleep(10)
+        time.sleep(15)
 
         # BT_1.sendDataToWebSocket()
         # BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-        BT_1.sendDataToServer('http://127.0.0.1:5050/getLocation/')
+        BT_1.sendDataToServer('http://127.0.0.1:8080/getLocation/')
