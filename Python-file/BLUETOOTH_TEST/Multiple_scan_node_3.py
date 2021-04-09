@@ -48,6 +48,7 @@ def on_message(client, userdata, message):
                 currtime = btscanner.getCurrentTime()
                 btscanner.sendtoNode1(devn, node, dist, currtime)
                 print("%s distance:%.2f sent to node1" % (devn, dist))
+                time.sleep(1)
         btscanner.cleardicts()
 
 
@@ -124,7 +125,8 @@ class BTScanOther():
                             print(" Device addr = ", dev.addr)
                             print(" Device RSSI = %d" % (int(dev.rssi)))
                             rssi = dev.rssi
-                            ratio = (-71 - rssi)/(10.0 * 2.0)
+                            # ratio = (-71 - rssi)/(10.0 * 2.0)
+                            ratio = (-52 - rssi)/(10.0 * 2.0)
                             distance = 10**ratio
                             print(" Distance (m) = %.2f" % distance)
                             print("")
@@ -133,7 +135,8 @@ class BTScanOther():
             for key in self.rssidict:
                 print(key, ":", self.rssidict[key])
                 rssi = max(self.rssidict[key], key=self.rssidict[key].count)
-                ratio = (-71 - rssi)/(10.0 * 2.0)
+                # ratio = (-71 - rssi)/(10.0 * 2.0)
+                ratio = (-52 - rssi)/(10.0 * 2.0)
                 distance = 10**ratio
                 distance = "{:.2f}".format(distance)
                 print("%s's distance: %.2f\n" % (key, float(distance)))
