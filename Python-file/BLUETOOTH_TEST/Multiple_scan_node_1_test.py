@@ -73,10 +73,11 @@ class IPS_NODE ():
     def __init__(self, IP_address="192.168.4.150", device_name="BT_TAG_1", location="ABC Building", floor=7, room="ECC-804"):
         self.API_ENDPOINT = "http://192.168.4.150:5678/getDATA"
         self.IP_address = IP_address
-        self.device_name = device_name
+        self.bt_tag_device_name = device_name
+        self.bt_tag_owner = 'Admin_BT_TAG_1'
         self.location = location
-        self.latitude = 1.1111
-        self.longtitude = 2.2222
+        self.latitude = 30.0000
+        self.longtitude = 52.0000
         self.floor = floor
         self.room = room
         self.x_coord = 0
@@ -84,6 +85,15 @@ class IPS_NODE ():
 
     def setDevice_name(self, name):
         self.device_name = name
+
+    def setBtTagOwner(self, name):
+        self.bt_tag_owner = name
+    
+    def setLatitude(self, latitude):
+        self.latitude = latitude
+    
+    def setLongtitude(self, longtitude):
+        self.long = longtitude
 
     def setXcoord(self, x):
         # self.x_coord = 9.999
@@ -96,6 +106,7 @@ class IPS_NODE ():
     def setJsonData(self):
         dummy_data = {
             "BT_TAG_DEVICE_NAME": self.device_name,
+            "BT_TAG_OWNER" : self.bt_tag_owner,
             "LOCATION": self.location,
             "LATITUDE": self.latitude,
             "LONGTITUDE": self.longtitude,
@@ -114,6 +125,7 @@ class IPS_NODE ():
         headers = {'Content-type': 'application/json'}
         r = requests.post(url=self.API_ENDPOINT,
                           json=self.setJsonData(), headers=headers)
+        print("----------*** (BT_TAG_1) SEND DATA TO WEB SERVER LEAW ***----------")
         print('STATUS_CODE : ' + str(r.status_code))
 
         # r.text is the content of the response in Unicode
@@ -121,19 +133,21 @@ class IPS_NODE ():
 
     def sendDataToWebSocket(self):
         s = socket.socket()
-        print("Socket successfully created")
+        print(type(self.setJsonData()))
+        print("Socket sucessfully created")
         port = 15000
-        IP_ADDR = "192.168.4.19"
+        # IP_ADDR = "192.168.4.19"
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind(('', port))
+        s.bind(('0.0.0.0', port))
         s.listen(5)
         print("socket is listening")
 
-        # while True:
-        c, addr = s.accept()
-        print('Got connection from', addr)
-        c.send(bytes(self.setJsonData(), encoding='utf8'))
-        c.close()
+        while True:
+            c, addr = s.accept()
+            print ('Got connection from', addr )
+            c.send(bytes(self.setJsonData(), encoding='utf8'))
+            print("----------*** (BT_TAG_1) SEND DATA TO SCADA LEAW ***----------")
+            c.close()
 
 
 class BTScan():
@@ -145,7 +159,7 @@ class BTScan():
         # self.node3distance = {}
         self.scanner = Scanner()
         self.devicename = ""  # default
-        self.sender = IPS_NODE(IP_address="192.168.4.150", device_name=str(self.devicename), location="ABC Building", floor=7, room="ECC-804")
+        self.sender = IPS_NODE(IP_address="192.168.4.150", device_name=str(self.devicename), location="ABC Building", floor=8, room="ECC-804")
 
         self.node1x = 0.0
         self.node1y = 0.0
@@ -305,6 +319,9 @@ class BTScan():
 
                     print("X: %f, Y: %f of %s" % (Xcoord, Ycoord, str(key)))
 
+                    self.sender.setDevice_name(str(key))
+                    # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/')   
+                    self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
                     self.resetLocationdict()
 
                     # mclient.publish("Test/request", str("Requesting"))
@@ -326,7 +343,6 @@ class BTScan():
                         # pass
             print("\n")
             time.sleep(10)
-            time.sleep(1)
 
 
 if __name__ == '__main__':

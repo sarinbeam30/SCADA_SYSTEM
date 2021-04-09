@@ -106,5 +106,5 @@ if __name__== "__main__":
         time.sleep(15)
 
         # BT_1.sendDataToWebSocket()
-        # BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-        BT_1.sendDataToServer('http://127.0.0.1:8080/getLocation/')
+        BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+        # BT_1.sendDataToServer('http://127.0.0.1:8080/getLocation/')
