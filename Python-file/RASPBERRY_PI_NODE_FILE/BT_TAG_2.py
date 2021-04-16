@@ -85,8 +85,8 @@ class IPS_NODE ():
         c, addr = s.accept()
         print ('Got connection from', addr )
         c.send(bytes(self.setJsonData(), encoding='utf8'))
-        print("----------*** (BT_TAG_2) SEND DATA TO SCADA LEAW ***----------")
         c.close()
+        print("----------*** (BT_TAG_2) SEND DATA TO SCADA LEAW ***----------")
 
 
 if __name__== "__main__":
@@ -102,8 +102,8 @@ if __name__== "__main__":
         BT_2.setLatitude(14.7299)
         BT_2.setLongtitude(105.7782)
         # BT_2.sendDataToRabbitMQTT()
-        time.sleep(15)
+        time.sleep(10)
 
-        # BT_2.sendDataToWebSocket()
-        # BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-        BT_2.sendDataToServer('http://127.0.0.1:8080/getLocation/')
+        BT_2.sendDataToWebSocket()
+        BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+        # BT_2.sendDataToServer('http://127.0.0.1:8080/getLocation/')
