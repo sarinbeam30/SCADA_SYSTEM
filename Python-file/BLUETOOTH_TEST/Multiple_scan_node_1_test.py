@@ -19,7 +19,9 @@ mclient.connect("localhost", port=1883, keepalive=60)
 distance_mode = 0.0
 node2distance = 0.0
 node3distance = 0.0
-alldict = {}
+
+tempdist2 = 0.0
+tempdist3 = 0.0
 scanner = Scanner()
 
 
@@ -35,33 +37,47 @@ class ScanDelegate(DefaultDelegate):
 
 
 def on_message(client, userdata, message):
+    global tempdevn
     if(message.topic == "Test/nodenumber"):
         print(" Node number: %s" % str(message.payload.decode('utf-8')))
-        if(message.topic == "Test/devicename"):
-            print("Device name: %s" % str(message.payload.decode('utf-8')))
-        elif(message.topic == "Test/distancefromnode2"):
-            val = str(message.payload.decode('utf-8'))
-            floatval = float(val)
-            btscanner.setNode2dist(floatval)
-            print(" Distance in meters (node2): %.2f" % floatval)
-        elif(message.topic == "Test/distancefromnode3"):
-            val = str(message.payload.decode('utf-8'))
-            floatval = float(val)
-            btscanner.setNode3dist(floatval)
-            print(" Distance in meters (node3): %.2f" % floatval)
-        elif(message.topic == "Test/timestamp"):
-            print(" Timestamp: %s" % str(message.payload.decode('utf-8')))
-            print("")
+        locationdict = btscanner.getLocationdict()
+
+    if(message.topic == "Test/devicename"):
+        print("Device name: %s" % str(message.payload.decode('utf-8')))
+        tempdevn = str(message.payload.decode('utf-8'))
+
+    elif(message.topic == "Test/distancefromnode2"):
+        val = str(message.payload.decode('utf-8'))
+        floatval = float(val)
+        btscanner.setNode2dist(floatval)
+        print(" Distance in meters (node2): %.2f" % floatval)
+        tempdist2 = floatval
+        btscanner.rssilistchecker(floatval, tempdevn, btscanner.getLocationdict())
+        print(btscanner.getLocationdict())
+
+    elif(message.topic == "Test/distancefromnode3"):
+        val = str(message.payload.decode('utf-8'))
+        floatval = float(val)
+        btscanner.setNode3dist(floatval)
+        print(" Distance in meters (node3): %.2f" % floatval)
+        tempdist3 = floatval
+        btscanner.rssilistchecker(floatval, tempdevn, btscanner.getLocationdict())
+        print(btscanner.getLocationdict())
+
+    elif(message.topic == "Test/timestamp"):
+        print(" Timestamp: %s" % str(message.payload.decode('utf-8')))
+        print("")
 
 
 class IPS_NODE ():
     def __init__(self, IP_address="192.168.4.150", device_name="BT_TAG_1", location="ABC Building", floor=7, room="ECC-804"):
         self.API_ENDPOINT = "http://192.168.4.150:5678/getDATA"
         self.IP_address = IP_address
-        self.device_name = device_name
+        self.bt_tag_device_name = device_name
+        self.bt_tag_owner = 'Admin_BT_TAG_1'
         self.location = location
-        self.latitude = 1.1111
-        self.longtitude = 2.2222
+        self.latitude = 30.0000
+        self.longtitude = 52.0000
         self.floor = floor
         self.room = room
         self.x_coord = 0
@@ -69,6 +85,15 @@ class IPS_NODE ():
 
     def setDevice_name(self, name):
         self.device_name = name
+
+    def setBtTagOwner(self, name):
+        self.bt_tag_owner = name
+    
+    def setLatitude(self, latitude):
+        self.latitude = latitude
+    
+    def setLongtitude(self, longtitude):
+        self.long = longtitude
 
     def setXcoord(self, x):
         # self.x_coord = 9.999
@@ -81,6 +106,7 @@ class IPS_NODE ():
     def setJsonData(self):
         dummy_data = {
             "BT_TAG_DEVICE_NAME": self.device_name,
+            "BT_TAG_OWNER" : self.bt_tag_owner,
             "LOCATION": self.location,
             "LATITUDE": self.latitude,
             "LONGTITUDE": self.longtitude,
@@ -99,6 +125,7 @@ class IPS_NODE ():
         headers = {'Content-type': 'application/json'}
         r = requests.post(url=self.API_ENDPOINT,
                           json=self.setJsonData(), headers=headers)
+        print("----------*** (BT_TAG_1) SEND DATA TO WEB SERVER LEAW ***----------")
         print('STATUS_CODE : ' + str(r.status_code))
 
         # r.text is the content of the response in Unicode
@@ -106,19 +133,21 @@ class IPS_NODE ():
 
     def sendDataToWebSocket(self):
         s = socket.socket()
-        print("Socket successfully created")
+        print(type(self.setJsonData()))
+        print("Socket sucessfully created")
         port = 15000
-        IP_ADDR = "192.168.4.19"
+        # IP_ADDR = "192.168.4.19"
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind(('', port))
+        s.bind(('0.0.0.0', port))
         s.listen(5)
         print("socket is listening")
 
-        # while True:
-        c, addr = s.accept()
-        print('Got connection from', addr)
-        c.send(bytes(self.setJsonData(), encoding='utf8'))
-        c.close()
+        while True:
+            c, addr = s.accept()
+            print ('Got connection from', addr )
+            c.send(bytes(self.setJsonData(), encoding='utf8'))
+            print("----------*** (BT_TAG_1) SEND DATA TO SCADA LEAW ***----------")
+            c.close()
 
 
 class BTScan():
@@ -130,8 +159,7 @@ class BTScan():
         # self.node3distance = {}
         self.scanner = Scanner()
         self.devicename = ""  # default
-        self.sender = IPS_NODE(IP_address="192.168.4.150", device_name=str(
-            self.devicename), location="ABC Building", floor=7, room="ECC-804")
+        self.sender = IPS_NODE(IP_address="192.168.4.150", device_name=str(self.devicename), location="ABC Building", floor=8, room="ECC-804")
 
         self.node1x = 0.0
         self.node1y = 0.0
@@ -139,6 +167,8 @@ class BTScan():
         self.node2y = 0.0
         self.node3x = 2.0
         self.node3y = 2.0
+
+        self.locationdict = {}
 
     def setNode2dist(self, dist):
         self.node2distance = dist
@@ -151,6 +181,13 @@ class BTScan():
 
     def getDevicename(self):
         return self.devicename
+    
+    def getLocationdict(self):
+        return self.locationdict
+    
+    def resetLocationdict(self):
+        self.locationdict = {}
+        return self.locationdict
 
     def TrilaterationLocateX(self, r1, r2, r3):
         A = 2*self.node2x - 2*self.node1x
@@ -199,7 +236,7 @@ class BTScan():
                     #print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
                     for (adtype, desc, value) in dev.getScanData():
                         if(desc == "Complete Local Name"):
-                            # scanner.connect("41:30:28:36:74:86")
+                            # scanner.connect("41:30:28:36:74:86")      
                             print("")
                             print(" %s = %s" % (desc, value))
                             self.devicename = str(value)
@@ -209,9 +246,10 @@ class BTScan():
                             print(" Device addr = ", dev.addr)
                             print(" Device RSSI = %d" % (int(dev.rssi)))
 
-                            # rssilist.append(int(dev.rssi))
+                            # rssilist.append(int(dev.rssi) )
                             rssi = dev.rssi
-                            ratio = (-71 - rssi)/(10.0 * 2.0)
+                            # ratio = (-71 - rssi)/(10.0 * 2.0)
+                            ratio = (-57 - rssi)/(10.0 * 2.0)
                             distance = 10**ratio
                             print(" Distance (m) = %.2f" % distance)
                             print("")
@@ -227,9 +265,13 @@ class BTScan():
                 rssi2 = statistics.mean(rssidict[key])
                 rssi3 = max(dalist)
 
-                ratio = (-71 - rssi)/(10.0 * 2.0)
-                ratio2 = (-71 - rssi2)/(10.0 * 2.0)
-                ratio3 = (-71 - rssi3)/(10.0 * 2.0)
+                # ratio = (-71 - rssi)/(10.0 * 2.0)
+                # ratio2 = (-71 - rssi2)/(10.0 * 2.0)
+                # ratio3 = (-71 - rssi3)/(10.0 * 2.0)
+
+                ratio = (-57 - rssi)/(10.0 * 2.0)
+                ratio2 = (-57 - rssi2)/(10.0 * 2.0)
+                ratio3 = (-57 - rssi3)/(10.0 * 2.0)
 
                 distance = 10**ratio
                 distance = "{:.2f}".format(distance)
@@ -241,55 +283,66 @@ class BTScan():
                 distance3 = "{:.2f}".format(distance3)
 
                 print("%s's distance from mode: %.2f" % (key, float(distance)))
-                print("%s's distance from mean: %.2f" %
-                      (key, float(distance2)))
-                print("%s's distance from min : %.2f" %
-                      (key, float(distance3)))
+                print("%s's distance from mean: %.2f" % (key, float(distance2)))
+                print("%s's distance from min : %.2f" % (key, float(distance3)))
 
                 ts = calendar.timegm(time.gmtime())
                 readable = datetime.datetime.fromtimestamp(ts).isoformat()
                 print(readable)
                 print("")
 
-                mclient.publish("Test/request", 1)
-                print("Requesting node 2 data")
-                # mclient.publish("Test/request", 2)
-                print("Requesting node 3 data")
-                time.sleep(5)
+                self.rssilistchecker(distance,key,self.getLocationdict())
 
-                #r1 = node1, r2 = node2, r3 = node3
-                Xcoord = self.TrilaterationLocateX(float(distance), float(
-                    self.node2distance), float(self.node3distance))
-                Xcoord = "{:.4f}".format(Xcoord)
-                Xcoord = float(Xcoord)
-                self.sender.setXcoord(Xcoord)
 
-                Ycoord = self.TrilaterationLocateY(float(distance), float(
-                    self.node2distance), float(self.node3distance))
-                Ycoord = "{:.4f}".format(Ycoord)
-                Ycoord = float(Ycoord)
-                self.sender.setYcoord(Ycoord)
+            mclient.publish("Test/request", 1)
+            print("Requesting node 2 data")
+            # mclient.publish("Test/request", 2)
+            print("Requesting node 3 data")
+            time.sleep(5)
 
-                # mclient.publish("Test/request", str("Requesting"))
-
-                if(distance == 0.0):
-                    print("Node1 distance can't be 0")
-                    pass
-                elif(self.node2distance == 0.0):
-                    print("Node2 distance can't be 0")
-                    pass
-                elif(self.node3distance == 0.0):
-                    print("Node3 distance can't be 0")
-                    pass
+            locationdict = self.getLocationdict()
+            for key in locationdict:
+            #r1 = node1, r2 = node2, r3 = node3
+                rssilist = locationdict[key]
+                if len(rssilist) < 3:
+                    print("not enough values for calculation")
                 else:
+                    Xcoord = self.TrilaterationLocateX(float(rssilist[0]), float(rssilist[1]), float(rssilist[2]))
+                    Xcoord = "{:.4f}".format(Xcoord)
+                    Xcoord = float(Xcoord)
+                    self.sender.setXcoord(Xcoord)
+
+                    Ycoord = self.TrilaterationLocateY(float(distance), float(rssilist[1]), float(rssilist[2]))
+                    Ycoord = "{:.4f}".format(Ycoord)
+                    Ycoord = float(Ycoord)
+                    self.sender.setYcoord(Ycoord)
+
                     print("X: %f, Y: %f of %s" % (Xcoord, Ycoord, str(key)))
-                    # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/')
-                    # self.sender.setDevice_name(str(key))
-                    # self.sender.sendDataToWebSocket();
-                    pass
-                print("\n")
-                time.sleep(10)
-            time.sleep(1)
+
+                    self.sender.setDevice_name(str(key))
+                    # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/')   
+                    self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                    self.resetLocationdict()
+
+                    # mclient.publish("Test/request", str("Requesting"))
+
+                    # if(distance == 0.0):
+                    #     print("Node1 distance can't be 0")
+                    #     pass
+                    # elif(self.node2distance == 0.0):
+                    #     print("Node2 distance can't be 0")
+                    #     pass
+                    # elif(self.node3distance == 0.0):
+                    #     print("Node3 distance can't be 0")
+                    #     pass
+                    # else:
+                    #     print("X: %f, Y: %f of %s" % (Xcoord, Ycoord, str(key)))
+                        # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        # self.sender.setDevice_name(str(key))
+                        # self.sender.sendDataToWebSocket();
+                        # pass
+            print("\n")
+            time.sleep(10)
 
 
 if __name__ == '__main__':
