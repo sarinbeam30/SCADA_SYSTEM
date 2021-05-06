@@ -2,21 +2,21 @@ import requests, json, socket, random, time, sys, os, paho.mqtt.client as client
 from datetime import datetime
 
 # MQTT_INITIALIZE
-hostname = "192.168.4.150"
+hostname = ""
 port = 1883
 ID = sys.argv[0]+str(os.getpid())
 # mclient = client.Client(ID)
 # mclient.connect(hostname, port=1883,keepalive=60)
 
 class IPS_NODE ():
-    def __init__(self, IP_address="192.168.4.150",device_name="BT_TAG_1",location="ECC Building", floor=7,room="ECC-804"):
+    def __init__(self, IP_address="192.168.4.150",device_name="BT_TAG_3",location="ECC Building", floor=7,room="ECC-804"):
         self.API_ENDPOINT = "http://192.168.4.150:5678/getDATA"
         self.IP_address = IP_address
         self.bt_tag_device_name = device_name
-        self.bt_tag_owner = 'Admin_BT_TAG_1'
+        self.bt_tag_owner = 'Admin_BT_TAG_3'
         self.location = location
-        self.latitude = 30.0000
-        self.longtitude = 52.000
+        self.latitude = 40.0000
+        self.longtitude = 62.000
         self.floor = floor
         self.room = room
         self.x_coord = 1.234
@@ -108,29 +108,29 @@ class IPS_NODE ():
 if __name__== "__main__":
 
     while True :
-        BT_1 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_1", location="ECC Building", floor=7,room="ECC-704")
+        BT_3 = IPS_NODE(IP_address="", device_name="BT_TAG_3", location="ECC Building", floor=7,room="ECC-704")
         # BT_1 = IPS_NODE(IP_address="127.0.0.1", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
         
         random.seed()
-        BT_1.setXcoord()
-        BT_1.setYcoord()
-        BT_1.setBtTagOwner("sarin_beam30")
+        BT_3.setXcoord()
+        BT_3.setYcoord()
+        BT_3.setBtTagOwner("ricky_1234")
 
         # KMITL
-        # BT_1.setLatitude(13.729085)
-        # BT_1.setLongtitude(100.775741)
+        BT_3.setLatitude(13.729085)
+        BT_3.setLongtitude(100.775741)
         
         # ARL LATKRABNG
-        BT_1.setLatitude(13.72794)
-        BT_1.setLongtitude(100.74748)
-        BT_1.setLocation("Airport Rail Link Lat Krabang")
-        BT_1.setFloor(2)
-        BT_1.setRoom("-")
+        # BT_1.setLatitude(13.72794)
+        # BT_1.setLongtitude(100.74748)
+        # BT_1.setLocation("Airport Rail Link Lat Krabang")
+        # BT_1.setFloor(2)
+        # BT_1.setRoom("-")
 
-        print("[BT_1] LA : ", BT_1.latitude)
-        print("[BT_1] LONG : ", BT_1.longtitude)
+        print("[BT_1] LA : ", BT_3.latitude)
+        print("[BT_1] LONG : ", BT_3.longtitude)
         # BT_1.sendDataToMQTT()
         # BT_1.sendDataToWebSocket()
         # BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-        BT_1.sendDataToServer('http://127.0.0.1:8080/getLocation/')
+        BT_3.sendDataToServer('http://127.0.0.1:8080/getLocation/')
         time.sleep(30)
