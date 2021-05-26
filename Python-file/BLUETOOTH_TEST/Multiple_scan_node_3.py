@@ -10,14 +10,17 @@ import sys
 import os
 import threading
 #hostname = "192.168.1.101"
-hostname = "192.168.4.150"
+#hostname = "192.168.4.150"
+home = "192.168.1.38"
+beam = "192.168.1.102"
+beam2 = "192.168.1.107"
 port = 1883
 
 nodename = "Node 3"
 
 ID = sys.argv[0]+str(os.getpid())
 mclient = client.Client(ID)
-mclient.connect(hostname, port=1883, keepalive=60)
+mclient.connect(beam2, port=1883, keepalive=60)
 
 scanner = Scanner()
 
@@ -51,6 +54,51 @@ def on_message(client, userdata, message):
                 time.sleep(1)
         btscanner.cleardicts()
 
+class SingleStateKalmanFilter(object):
+    def __init__(self, A, B, C, x, P, Q, R):
+        self.A = A  # Process dynamics
+        self.B = B  # Control dynamics
+        self.C = C  # Measurement dynamics
+        self.current_state_estimate = x  # Current state estimate
+        self.current_prob_estimate = P  # Current probability of state estimate
+        self.Q = Q  # Process covariance
+        self.R = R  # Measurement covariance
+
+        self.initA = A  
+        self.initB = B  
+        self.initC = C  
+        self.initcurrent_state_estimate = x  
+        self.initcurrent_prob_estimate = P  
+        self.initQ = Q 
+        self.initR = R 
+
+    def current_state(self):
+        return self.current_state_estimate
+
+    def step(self, control_input, measurement):
+        # Prediction step
+        predicted_state_estimate = self.A * self.current_state_estimate + self.B * control_input
+        predicted_prob_estimate = (self.A * self.current_prob_estimate) * self.A + self.Q
+
+        # Observation step
+        innovation = measurement - self.C * predicted_state_estimate
+        innovation_covariance = self.C * predicted_prob_estimate * self.C + self.R
+
+        # Update step
+        kalman_gain = predicted_prob_estimate * self.C * 1 / float(innovation_covariance)
+        self.current_state_estimate = predicted_state_estimate + kalman_gain * innovation
+
+        # eye(n) = nxn identity matrix.
+        self.current_prob_estimate = (1 - kalman_gain * self.C) * predicted_prob_estimate
+
+    def reset(self):
+        self.A = self.initA
+        self.B = self.initB
+        self.C = self.initC
+        self.current_state_estimate = self.initcurrent_state_estimate
+        self.current_prob_estimate = self.initcurrent_prob_estimate
+        self.Q = self.initQ
+        self.R = self.initR
 
 class BTScanOther():
     def __init__(self):
@@ -60,6 +108,16 @@ class BTScanOther():
         self.ts = ""
         self.rssidict = {}
         self.distancedict = {}
+
+        A = 1  # No process innovation
+        C = 1  # Measurement
+        B = 0  # No control input
+        Q = 1  # Process covariance
+        R = 1  # Measurement covariance
+        x = 36  # Initial estimate
+        P = 2  # Initial covariance
+
+        self.kalman_filter = SingleStateKalmanFilter(A, B, C, x, P, Q, R) 
 
     def getrssidict(self):
         return self.rssidict
@@ -75,7 +133,7 @@ class BTScanOther():
         return self.devicename
 
     def getDistance(self):
-        return self.node2distance
+        return self.node3distance
 
     def getCurrentTime(self):
         ts = calendar.timegm(time.gmtime())
@@ -133,26 +191,33 @@ class BTScanOther():
                             # else:
                             #     pass
             for key in self.rssidict:
-                print(key, ":", self.rssidict[key])
+                # print(key, ":", self.rssidict[key])
                 rssi = max(self.rssidict[key], key=self.rssidict[key].count)
+
+                rssifromkalman_estimates = []
+                for i in self.rssidict[key]:
+                    rssifromkalman = self.kalman_filter.step(0,i)
+                    rssifromkalman_estimates.append(self.kalman_filter.current_state())
+                # print("Kalman estimation: ", rssifromkalman_estimates)
+                rssifromkalman = self.kalman_filter.current_state()
                 # ratio = (-71 - rssi)/(10.0 * 2.0)
                 if (key == "Mi Smart Band 4"):
-                    ratio = (-48 - rssi)/(10.0 * 2.0)
+                    ratio = (-62 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
-                    print("%s's distance: %.2f\n" % (key, float(distance)))
+                    print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
                 elif(key == "RMX50-5G"):
-                    ratio = (-78 - rssi)/(10.0 * 2.0)
+                    ratio = (-82 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
-                    print("%s's distance: %.2f\n" % (key, float(distance)))
+                    print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
                 else:
-                    ratio = (-60 - rssi)/(10.0 * 2.0)
+                    ratio = (-60 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
-                    print("%s's distance: %.2f\n" % (key, float(distance)))
+                    print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
             time.sleep(1)
 

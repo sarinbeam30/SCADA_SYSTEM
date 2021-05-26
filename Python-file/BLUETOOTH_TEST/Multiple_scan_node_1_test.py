@@ -149,6 +149,52 @@ class IPS_NODE ():
             print("----------*** (BT_TAG_1) SEND DATA TO SCADA LEAW ***----------")
             c.close()
 
+class SingleStateKalmanFilter(object):
+
+    def __init__(self, A, B, C, x, P, Q, R):
+        self.A = A  # Process dynamics
+        self.B = B  # Control dynamics
+        self.C = C  # Measurement dynamics
+        self.current_state_estimate = x  # Current state estimate
+        self.current_prob_estimate = P  # Current probability of state estimate
+        self.Q = Q  # Process covariance
+        self.R = R  # Measurement covariance
+
+        self.initA = A  
+        self.initB = B  
+        self.initC = C  
+        self.initcurrent_state_estimate = x  
+        self.initcurrent_prob_estimate = P  
+        self.initQ = Q 
+        self.initR = R 
+
+    def current_state(self):
+        return self.current_state_estimate
+
+    def step(self, control_input, measurement):
+        # Prediction step
+        predicted_state_estimate = self.A * self.current_state_estimate + self.B * control_input
+        predicted_prob_estimate = (self.A * self.current_prob_estimate) * self.A + self.Q
+
+        # Observation step
+        innovation = measurement - self.C * predicted_state_estimate
+        innovation_covariance = self.C * predicted_prob_estimate * self.C + self.R
+
+        # Update step
+        kalman_gain = predicted_prob_estimate * self.C * 1 / float(innovation_covariance)
+        self.current_state_estimate = predicted_state_estimate + kalman_gain * innovation
+
+        # eye(n) = nxn identity matrix.
+        self.current_prob_estimate = (1 - kalman_gain * self.C) * predicted_prob_estimate
+
+    def reset(self):
+        self.A = self.initA
+        self.B = self.initB
+        self.C = self.initC
+        self.current_state_estimate = self.initcurrent_state_estimate
+        self.current_prob_estimate = self.initcurrent_prob_estimate
+        self.Q = self.initQ
+        self.R = self.initR
 
 class BTScan():
     def __init__(self):
@@ -162,14 +208,25 @@ class BTScan():
         self.sender = IPS_NODE(IP_address="192.168.4.150", device_name=str(self.devicename), location="ABC Building", floor=8, room="ECC-804")
 
         self.node1x = 0.0
-        self.node1y = 0.0
-        self.node2x = 2.0
+        self.node1y = 1.0
+        self.node2x = 0.0
         self.node2y = 0.0
-        self.node3x = 2.0
-        self.node3y = 2.0
+        self.node3x = 1.0
+        self.node3y = 0.0
 
         self.locationdict = {}
+        # Initialise the Kalman Filter
 
+        A = 1  # No process innovation
+        C = 1  # Measurement
+        B = 0  # No control input
+        Q = 1  # Process covariance
+        R = 1  # Measurement covariance
+        x = 36  # Initial estimate
+        P = 2  # Initial covariance
+
+        self.kalman_filter = SingleStateKalmanFilter(A, B, C, x, P, Q, R) 
+        
     def setNode2dist(self, dist):
         self.node2distance = dist
 
@@ -265,22 +322,29 @@ class BTScan():
                 rssi2 = statistics.mean(rssidict[key])
                 rssi3 = max(dalist)
 
+                rssifromkalman_estimates = []
+                for i in rssidict[key]:
+                    rssifromkalman = self.kalman_filter.step(0,i)
+                    rssifromkalman_estimates.append(self.kalman_filter.current_state())
+                print(rssifromkalman_estimates)
+                rssifromkalman = self.kalman_filter.current_state()
+
                 # ratio = (-71 - rssi)/(10.0 * 2.0)
                 # ratio2 = (-71 - rssi2)/(10.0 * 2.0)
                 # ratio3 = (-71 - rssi3)/(10.0 * 2.0)
 
                 if key == "Mi Smart Band 4":
-                    ratio = (-60 - rssi)/(10.0 * 2.0)
-                    ratio2 = (-60 - rssi2)/(10.0 * 2.0)
-                    ratio3 = (-60 - rssi3)/(10.0 * 2.0)
+                    ratio = (-62 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-36 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-36 - rssi3)/(10.0 * 2.0)
 
                 elif key == "RMX50-5G":
-                    ratio = (-78 - rssi)/(10.0 * 2.0)
-                    ratio2 = (-78 - rssi2)/(10.0 * 2.0)
-                    ratio3 = (-78 - rssi3)/(10.0 * 2.0)
+                    ratio = (-80 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-80 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-80 - rssi3)/(10.0 * 2.0)
 
                 else:
-                    ratio = (-72 - rssi)/(10.0 * 2.0)
+                    ratio = (-72 - rssifromkalman)/(10.0 * 2.0)
                     ratio2 = (-72 - rssi2)/(10.0 * 2.0)
                     ratio3 = (-72 - rssi3)/(10.0 * 2.0)
 
@@ -293,7 +357,7 @@ class BTScan():
                 distance3 = 10**ratio3
                 distance3 = "{:.2f}".format(distance3)
 
-                print("%s's distance from mode: %.2f" % (key, float(distance)))
+                print("%s's distance from kalman: %.2f" % (key, float(distance)))
                 print("%s's distance from mean: %.2f" % (key, float(distance2)))
                 print("%s's distance from min : %.2f" % (key, float(distance3)))
 
@@ -304,26 +368,30 @@ class BTScan():
 
                 self.rssilistchecker(distance,key,self.getLocationdict())
 
-
+            self.kalman_filter.reset()
             mclient.publish("Test/request", 1)
             print("Requesting node 2 data")
             # mclient.publish("Test/request", 2)
             print("Requesting node 3 data")
-            time.sleep(5)
+            time.sleep(10)
 
             locationdict = self.getLocationdict()
+            print("PROCEED TO CALCULATION")
             for key in locationdict:
             #r1 = node1, r2 = node2, r3 = node3
                 rssilist = locationdict[key]
                 if len(rssilist) < 3:
                     print("not enough values for calculation")
                 else:
+                    print("CALCULATING ", locationdict[key])
+                    print("For X coord:", float(rssilist[0]), float(rssilist[1]), float(rssilist[2]))
                     Xcoord = self.TrilaterationLocateX(float(rssilist[0]), float(rssilist[1]), float(rssilist[2]))
                     Xcoord = "{:.4f}".format(Xcoord)
                     Xcoord = float(Xcoord)
                     self.sender.setXcoord(Xcoord)
 
-                    Ycoord = self.TrilaterationLocateY(float(distance), float(rssilist[1]), float(rssilist[2]))
+                    print("For Y coord:", float(rssilist[0]), float(rssilist[1]), float(rssilist[2]))
+                    Ycoord = self.TrilaterationLocateY(float(rssilist[0]), float(rssilist[1]), float(rssilist[2]))
                     Ycoord = "{:.4f}".format(Ycoord)
                     Ycoord = float(Ycoord)
                     self.sender.setYcoord(Ycoord)
@@ -353,6 +421,7 @@ class BTScan():
                         # pass
             print("\n")
             time.sleep(10)
+
 
 
 if __name__ == '__main__':
