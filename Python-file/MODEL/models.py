@@ -4379,7 +4379,8 @@ class IndoorPositioningSystemDevice_Connection(Connection):
                 temp = self.write_out() # check anything to write first
 
                 count += 1
-                if count % 30 != 1:
+                if count % 20 != 1:
+                    #print("(Count = " + str(count) + " ) Ko Check Noi")
                     continue
 
                 oldData = {}
@@ -4395,8 +4396,9 @@ class IndoorPositioningSystemDevice_Connection(Connection):
                     # l.end_MQTT_service()
 
                     data_from_rasi_pi = l.getDataFromRASPI_SOCKET()
+                    print("(models.py) TYPE OF DATA : " + str(type(data_from_rasi_pi)))
                     print(data_from_rasi_pi)
-                    print("TYPE OF DATA : ", type(data_from_rasi_pi))
+                    
                     if data_from_rasi_pi == -1:
                         continue
                     data = json.loads(data_from_rasi_pi)

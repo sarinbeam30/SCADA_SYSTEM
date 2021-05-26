@@ -117,15 +117,15 @@ if __name__== "__main__":
         BT_1.setBtTagOwner("sarin_beam30")
 
         # KMITL
-        # BT_1.setLatitude(13.729085)
-        # BT_1.setLongtitude(100.775741)
+        BT_1.setLatitude(13.729085)
+        BT_1.setLongtitude(100.775741)
         
         # ARL LATKRABNG
-        BT_1.setLatitude(13.72794)
-        BT_1.setLongtitude(100.74748)
-        BT_1.setLocation("Airport Rail Link Lat Krabang")
-        BT_1.setFloor(2)
-        BT_1.setRoom("-")
+        # BT_1.setLatitude(13.72794)
+        # BT_1.setLongtitude(100.74748)
+        # BT_1.setLocation("Airport Rail Link Lat Krabang")
+        # BT_1.setFloor(2)
+        # BT_1.setRoom("-")
 
         print("[BT_1] LA : ", BT_1.latitude)
         print("[BT_1] LONG : ", BT_1.longtitude)

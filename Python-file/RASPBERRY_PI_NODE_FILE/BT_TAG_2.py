@@ -113,8 +113,8 @@ if __name__== "__main__":
         BT_2.setBtTagOwner("window_1234")
 
         # KMITL
-        BT_2.setLatitude(13.7291)
-        BT_2.setLongtitude(100.7756)
+        BT_2.setLatitude(13.729085)
+        BT_2.setLongtitude(100.775741)
         BT_2.setLocation("ECC Building")
         BT_2.setFloor(7)
         BT_2.setRoom("ECC-704")

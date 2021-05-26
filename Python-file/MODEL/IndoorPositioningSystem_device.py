@@ -79,7 +79,7 @@ class IndoorPositioningSystem_SCADA():
                 s.close()
             except:
                 print("faulty data")
-        print("RESULT TYPE : " , type(result))
+        print("RESULT TYPE : " + str(type(result)))
         print("JSON_DATA : ", result)
         return result
 
