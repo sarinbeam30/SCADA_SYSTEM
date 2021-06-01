@@ -14,13 +14,14 @@ import threading
 home = "192.168.1.38"
 beam = "192.168.1.102"
 beam2 = "192.168.1.107"
+beam3 = "192.168.1.102"
 port = 1883
 
 nodename = "Node 2"
 
 ID = sys.argv[0]+str(os.getpid())
 mclient = client.Client(ID)
-mclient.connect(beam2, port=1883, keepalive=60)
+mclient.connect(beam3, port=1883, keepalive=60)
 
 scanner = Scanner()
 
@@ -202,7 +203,7 @@ class BTScanOther():
                 rssifromkalman = self.kalman_filter.current_state()
                 # ratio = (-71 - rssi)/(10.0 * 2.0)
                 if (key == "Mi Smart Band 4"):
-                    ratio = (-62 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-68 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))

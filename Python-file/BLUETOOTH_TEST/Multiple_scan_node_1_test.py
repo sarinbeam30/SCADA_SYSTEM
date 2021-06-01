@@ -74,7 +74,7 @@ class IPS_NODE ():
         self.API_ENDPOINT = "http://192.168.4.150:5678/getDATA"
         self.IP_address = IP_address
         self.bt_tag_device_name = device_name
-        self.bt_tag_owner = 'Admin_BT_TAG_1'
+        self.bt_tag_owner = '' #change to device_name so that it can be used e.g. ricky_1234
         self.location = location
         self.latitude = 30.0000
         self.longtitude = 52.0000
@@ -206,13 +206,17 @@ class BTScan():
         self.scanner = Scanner()
         self.devicename = ""  # default
         self.sender = IPS_NODE(IP_address="192.168.4.150", device_name=str(self.devicename), location="ABC Building", floor=8, room="ECC-804")
+        
+        self.BT_1 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_1", location="ECC Building", floor=7,room="ECC-704")
+        self.BT_2 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_2", location="ECC Building", floor=7,room="ECC-704")
+        self.BT_3 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_3", location="ECC Building", floor=7,room="ECC-704")
 
         self.node1x = 0.0
         self.node1y = 1.0
         self.node2x = 0.0
         self.node2y = 0.0
-        self.node3x = 1.0
-        self.node3y = 0.0
+        self.node3x = -1.0
+        self.node3y = 1.0
 
         self.locationdict = {}
         # Initialise the Kalman Filter
@@ -221,12 +225,29 @@ class BTScan():
         C = 1  # Measurement
         B = 0  # No control input
         Q = 1  # Process covariance
-        R = 1  # Measurement covariance
-        x = 36  # Initial estimate
-        P = 2  # Initial covariance
+        R = 0.5  # Measurement covariance
+        x = 65  # Initial estimate
+        P = 1  # Initial covariance
 
         self.kalman_filter = SingleStateKalmanFilter(A, B, C, x, P, Q, R) 
         
+    def setBTtags(self):
+        self.BT_1.setBtTagOwner("sarin_beam30")
+        # KMITL
+        self.BT_1.setLatitude(13.729085)
+        self.BT_1.setLongtitude(100.775741)
+
+        self.BT_2.setBtTagOwner("window_1234")
+        # KMITL
+        self.BT_2.setLatitude(13.729085)
+        self.BT_2.setLongtitude(100.775741)
+
+
+        self.BT_3.setBtTagOwner("ricky_1234")
+        # KMITL
+        self.BT_3.setLatitude(13.729085)
+        self.BT_3.setLongtitude(100.775741)
+
     def setNode2dist(self, dist):
         self.node2distance = dist
 
@@ -334,14 +355,14 @@ class BTScan():
                 # ratio3 = (-71 - rssi3)/(10.0 * 2.0)
 
                 if key == "Mi Smart Band 4":
-                    ratio = (-62 - rssifromkalman)/(10.0 * 2.0)
-                    ratio2 = (-36 - rssi2)/(10.0 * 2.0)
-                    ratio3 = (-36 - rssi3)/(10.0 * 2.0)
+                    ratio = (-68 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-68 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-68 - rssi3)/(10.0 * 2.0)
 
                 elif key == "RMX50-5G":
-                    ratio = (-80 - rssifromkalman)/(10.0 * 2.0)
-                    ratio2 = (-80 - rssi2)/(10.0 * 2.0)
-                    ratio3 = (-80 - rssi3)/(10.0 * 2.0)
+                    ratio = (-87 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-87 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-87 - rssi3)/(10.0 * 2.0)
 
                 else:
                     ratio = (-72 - rssifromkalman)/(10.0 * 2.0)
@@ -389,7 +410,7 @@ class BTScan():
                     Xcoord = "{:.4f}".format(Xcoord)
                     Xcoord = float(Xcoord)
                     self.sender.setXcoord(Xcoord)
-
+                    
                     print("For Y coord:", float(rssilist[0]), float(rssilist[1]), float(rssilist[2]))
                     Ycoord = self.TrilaterationLocateY(float(rssilist[0]), float(rssilist[1]), float(rssilist[2]))
                     Ycoord = "{:.4f}".format(Ycoord)
@@ -398,27 +419,23 @@ class BTScan():
 
                     print("X: %f, Y: %f of %s" % (Xcoord, Ycoord, str(key)))
 
-                    self.sender.setDevice_name(str(key))  
-                    self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-                    self.resetLocationdict()
+                    # self.sender.setDevice_name(str(key))  
+                    if str(key) == "Mi Smart Band 4":
+                        self.BT_1.setXcoord(Xcoord)
+                        self.BT_1.setYcoord(Ycoord)
+                        self.BT_1.setDevice_name(str(key))
+                        self.BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                    elif str(key) == "RMX50-5G":
+                        self.BT_2.setXcoord(Xcoord)
+                        self.BT_2.setYcoord(Ycoord)
+                        self.BT_2.setDevice_name(str(key))
+                        self.BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
 
-                    # mclient.publish("Test/request", str("Requesting"))
-                    # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/') 
-                    # if(distance == 0.0):
-                    #     print("Node1 distance can't be 0")
-                    #     pass
-                    # elif(self.node2distance == 0.0):
-                    #     print("Node2 distance can't be 0")
-                    #     pass
-                    # elif(self.node3distance == 0.0):
-                    #     print("Node3 distance can't be 0")
-                    #     pass
-                    # else:
-                    #     print("X: %f, Y: %f of %s" % (Xcoord, Ycoord, str(key)))
-                        # self.sender.sendDataToWebSocket('https://protected-brook-89084.herokuapp.com/getLocation/')
-                        # self.sender.setDevice_name(str(key))
-                        # self.sender.sendDataToWebSocket();
-                        # pass
+                    else:
+                        self.sender.setDevice_name(str(key))  
+                        self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                    
+            self.resetLocationdict()
             print("\n")
             time.sleep(10)
 
@@ -426,6 +443,8 @@ class BTScan():
 
 if __name__ == '__main__':
     btscanner = BTScan()
+    btscanner.setBTtags()
+    print("BT tags set")
     mclient.subscribe("Test/+")
     btscanner.setDevicename("RMX50-5G")
     # btscanner.setDevicename("ห้องทำงาน")
