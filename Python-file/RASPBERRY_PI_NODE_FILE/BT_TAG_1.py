@@ -32,10 +32,12 @@ class IPS_NODE ():
         self.longtitude = longtitude
     
     def setXcoord(self):
-        self.x_coord = (float("{:.3f}".format(random.uniform(0.0, 3.0))))
+        # self.x_coord = (float("{:.3f}".format(random.uniform(0.0, 3.0))))
+        self.x_coord = (float("{:.3f}".format(random.uniform(-2.6, 1.05))))
     
     def setYcoord(self):
-        self.y_coord = (float("{:.3f}".format(random.uniform(0.0, 3.0))))
+        # self.y_coord = (float("{:.3f}".format(random.uniform(0.0, 3.0))))
+        self.y_coord = (float("{:.3f}".format(random.uniform(-3.5, -2.45))))
     
     def setLocation(self, location):
         self.location = location
@@ -116,21 +118,31 @@ if __name__== "__main__":
         BT_1.setYcoord()
         BT_1.setBtTagOwner("sarin_beam30")
 
-        # KMITL
+        # (ECC BUILDING) KMITL
         BT_1.setLatitude(13.729085)
         BT_1.setLongtitude(100.775741)
+        BT_1.setLocation("ECC Building")
+        BT_1.setFloor(7)
+        BT_1.setRoom("ECC-704")
         
         # ARL LATKRABNG
-        # BT_1.setLatitude(13.72794)
-        # BT_1.setLongtitude(100.74748)
+        BT_1.setLatitude(13.72794)
+        BT_1.setLongtitude(100.74748)
         # BT_1.setLocation("Airport Rail Link Lat Krabang")
         # BT_1.setFloor(2)
         # BT_1.setRoom("-")
+
+        # SIAM_PARAGON
+        BT_1.setLatitude(13.7462)
+        BT_1.setLongtitude(100.5347)
+        BT_1.setLocation("SIAM Paragon")
+        BT_1.setFloor(2)
+        BT_1.setRoom("SP-321")
 
         print("[BT_1] LA : ", BT_1.latitude)
         print("[BT_1] LONG : ", BT_1.longtitude)
         # BT_1.sendDataToMQTT()
         # BT_1.sendDataToWebSocket()
-        # BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-        BT_1.sendDataToServer('http://127.0.0.1:8080/getLocation/')
+        BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+        # BT_1.sendDataToServer('http://127.0.0.1:8080/getLocation/')
         time.sleep(30)

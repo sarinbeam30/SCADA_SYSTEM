@@ -116,16 +116,27 @@ if __name__== "__main__":
         BT_3.setYcoord()
         BT_3.setBtTagOwner("ricky_1234")
 
-        # KMITL
+        
+        # (ECC BUILDING) KMITL
         BT_3.setLatitude(13.729085)
         BT_3.setLongtitude(100.775741)
+        BT_3.setLocation("ECC Building")
+        BT_3.setFloor(7)
+        BT_3.setRoom("ECC-704")
         
         # ARL LATKRABNG
-        # BT_1.setLatitude(13.72794)
-        # BT_1.setLongtitude(100.74748)
-        # BT_1.setLocation("Airport Rail Link Lat Krabang")
-        # BT_1.setFloor(2)
-        # BT_1.setRoom("-")
+        BT_3.setLatitude(13.72794)
+        BT_3.setLongtitude(100.74748)
+        BT_3.setLocation("Airport Rail Link Lat Krabang")
+        BT_3.setFloor(2)
+        BT_3.setRoom("-")
+
+        # SIAM_PARAGON
+        BT_3.setLatitude(13.7462)
+        BT_3.setLongtitude(100.5347)
+        BT_3.setLocation("SIAM Paragon")
+        BT_3.setFloor(2)
+        BT_3.setRoom("SP-321")
 
         print("[BT_1] LA : ", BT_3.latitude)
         print("[BT_1] LONG : ", BT_3.longtitude)
