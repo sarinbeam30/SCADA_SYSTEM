@@ -11,6 +11,7 @@ import json
 import socket
 import requests
 import statistics
+import random
 
 ID = sys.argv[0]+str(os.getpid())
 mclient = client.Client(ID)
@@ -23,6 +24,8 @@ node3distance = 0.0
 tempdist2 = 0.0
 tempdist3 = 0.0
 scanner = Scanner()
+
+random.seed()
 
 
 class ScanDelegate(DefaultDelegate):
@@ -93,7 +96,7 @@ class IPS_NODE ():
         self.latitude = latitude
     
     def setLongtitude(self, longtitude):
-        self.long = longtitude
+        self.longtitude = longtitude
 
     def setXcoord(self, x):
         # self.x_coord = 9.999
@@ -102,6 +105,15 @@ class IPS_NODE ():
     def setYcoord(self, y):
         #self.y_coord = 10.000
         self.y_coord = y
+
+    def setLocation(self, location):
+        self.location = location
+    
+    def setFloor(self, floor):
+        self.floor = floor
+    
+    def setRoom(self, room):
+        self.room = room
 
     def setJsonData(self):
         dummy_data = {
@@ -125,7 +137,7 @@ class IPS_NODE ():
         headers = {'Content-type': 'application/json'}
         r = requests.post(url=self.API_ENDPOINT,
                           json=self.setJsonData(), headers=headers)
-        print("----------*** (BT_TAG_1) SEND DATA TO WEB SERVER LEAW ***----------")
+        print("----------*** (RPi1) SEND DATA TO WEB SERVER LEAW ***----------")
         print('STATUS_CODE : ' + str(r.status_code))
 
         # r.text is the content of the response in Unicode
@@ -142,12 +154,12 @@ class IPS_NODE ():
         s.listen(5)
         print("socket is listening")
 
-        while True:
-            c, addr = s.accept()
-            print ('Got connection from', addr )
-            c.send(bytes(self.setJsonData(), encoding='utf8'))
-            print("----------*** (BT_TAG_1) SEND DATA TO SCADA LEAW ***----------")
-            c.close()
+        # while True:
+        c, addr = s.accept()
+        print ('Got connection from', addr )
+        c.send(bytes(self.setJsonData(), encoding='utf8'))
+        c.close()
+        print("----------*** (BT_TAG_1) SEND DATA TO SCADA LEAW ***----------")
 
 class SingleStateKalmanFilter(object):
 
@@ -211,12 +223,17 @@ class BTScan():
         self.BT_2 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_2", location="ECC Building", floor=7,room="ECC-704")
         self.BT_3 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_3", location="ECC Building", floor=7,room="ECC-704")
 
+        self.locationlist = [[13.729085,100.775741,"ECC Building",7,"ECC-704"],
+                            [13.72794,100.74748,"Airport Rail Link Lat Krabang",2,"-"],
+                            [13.7462,100.5347,"SIAM Paragon",2,"SP-321"]]
+
+
         self.node1x = 0.0
-        self.node1y = 1.0
-        self.node2x = 0.0
-        self.node2y = 0.0
-        self.node3x = -1.0
-        self.node3y = 1.0
+        self.node1y = 2.0
+        self.node2x = 2.0
+        self.node2y = 2.0
+        self.node3x = 0.0
+        self.node3y = 0.0
 
         self.locationdict = {}
         # Initialise the Kalman Filter
@@ -241,7 +258,6 @@ class BTScan():
         # KMITL
         self.BT_2.setLatitude(13.729085)
         self.BT_2.setLongtitude(100.775741)
-
 
         self.BT_3.setBtTagOwner("ricky_1234")
         # KMITL
@@ -355,14 +371,19 @@ class BTScan():
                 # ratio3 = (-71 - rssi3)/(10.0 * 2.0)
 
                 if key == "Mi Smart Band 4":
-                    ratio = (-68 - rssifromkalman)/(10.0 * 2.0)
-                    ratio2 = (-68 - rssi2)/(10.0 * 2.0)
-                    ratio3 = (-68 - rssi3)/(10.0 * 2.0)
+                    ratio = (-57 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-57 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-57 - rssi3)/(10.0 * 2.0)
 
                 elif key == "RMX50-5G":
-                    ratio = (-87 - rssifromkalman)/(10.0 * 2.0)
-                    ratio2 = (-87 - rssi2)/(10.0 * 2.0)
-                    ratio3 = (-87 - rssi3)/(10.0 * 2.0)
+                    ratio = (-67 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-67 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-67 - rssi3)/(10.0 * 2.0)
+
+                elif key == "3T":
+                    ratio = (-60 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-60 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-60 - rssi3)/(10.0 * 2.0)
 
                 else:
                     ratio = (-72 - rssifromkalman)/(10.0 * 2.0)
@@ -421,19 +442,64 @@ class BTScan():
 
                     # self.sender.setDevice_name(str(key))  
                     if str(key) == "Mi Smart Band 4":
+                        choose = random.randrange(0,len(self.locationlist),1)
+                        self.BT_1.setLatitude(self.locationlist[choose][0])
+                        self.BT_1.setLongtitude(self.locationlist[choose][1])
+                        print(self.locationlist[choose][1])
+                        self.BT_1.setLocation(self.locationlist[choose][2])
+                        self.BT_1.setFloor(self.locationlist[choose][3])
+                        self.BT_1.setRoom(self.locationlist[choose][4])
+
+
                         self.BT_1.setXcoord(Xcoord)
                         self.BT_1.setYcoord(Ycoord)
                         self.BT_1.setDevice_name(str(key))
                         self.BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        self.BT_1.sendDataToWebSocket()
+                        time.sleep(10)
+
                     elif str(key) == "RMX50-5G":
+                        choose = random.randrange(0,len(self.locationlist),1)
+                        self.BT_2.setLatitude(self.locationlist[choose][0])
+                        print(self.locationlist[choose][1])
+                        self.BT_2.setLongtitude(self.locationlist[choose][1])
+                        self.BT_2.setLocation(self.locationlist[choose][2])
+                        self.BT_2.setFloor(self.locationlist[choose][3])
+                        self.BT_2.setRoom(self.locationlist[choose][4])
+
                         self.BT_2.setXcoord(Xcoord)
                         self.BT_2.setYcoord(Ycoord)
                         self.BT_2.setDevice_name(str(key))
                         self.BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        self.BT_2.sendDataToWebSocket()
+                        time.sleep(10)
+                    
+                    elif str(key) == "3T":
+                        choose = random.randrange(0,len(self.locationlist),1)
+                        self.BT_3.setLatitude(self.locationlist[choose][0])
+                        print(self.locationlist[choose][1])
+                        self.BT_3.setLongtitude(self.locationlist[choose][1])
+                        self.BT_3.setLocation(self.locationlist[choose][2])
+                        self.BT_3.setFloor(self.locationlist[choose][3])
+                        self.BT_3.setRoom(self.locationlist[choose][4])
+
+                        self.BT_3.setXcoord(Xcoord)
+                        self.BT_3.setYcoord(Ycoord)
+                        self.BT_3.setDevice_name(str(key))
+                        self.BT_3.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        self.BT_3.sendDataToWebSocket()
+                        time.sleep(10)
 
                     else:
-                        self.sender.setDevice_name(str(key))  
-                        self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        print("other device")
+                        # choose = random.randrange(0,len(self.locationlist),1)
+                        # self.sender.setLatitude(self.locationlist[choose][0])
+                        # self.sender.setLongtitude(self.locationlist[choose][1])
+                        # self.sender.setLocation(self.locationlist[choose][2])
+                        # self.sender.setFloor(self.locationlist[choose][3])
+                        # self.sender.setRoom(self.locationlist[choose][4])
+                        # self.sender.setDevice_name(str(key))  
+                        # self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
                     
             self.resetLocationdict()
             print("\n")
@@ -446,7 +512,8 @@ if __name__ == '__main__':
     btscanner.setBTtags()
     print("BT tags set")
     mclient.subscribe("Test/+")
-    btscanner.setDevicename("RMX50-5G")
+    # btscanner.setDevicename("RMX50-5G")
+
     # btscanner.setDevicename("ห้องทำงาน")
     mclient.on_message = on_message
     mclient.loop_start()
