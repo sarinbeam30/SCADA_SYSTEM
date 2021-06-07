@@ -229,9 +229,9 @@ class BTScan():
 
 
         self.node1x = 0.0
-        self.node1y = 2.0
+        self.node1y = 1.5
         self.node2x = 2.0
-        self.node2y = 2.0
+        self.node2y = 1.5
         self.node3x = 0.0
         self.node3y = 0.0
 
@@ -371,17 +371,17 @@ class BTScan():
                 # ratio3 = (-71 - rssi3)/(10.0 * 2.0)
 
                 if key == "Mi Smart Band 4":
-                    ratio = (-57 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-70 - rssifromkalman)/(10.0 * 2.0)
                     ratio2 = (-57 - rssi2)/(10.0 * 2.0)
                     ratio3 = (-57 - rssi3)/(10.0 * 2.0)
 
                 elif key == "RMX50-5G":
-                    ratio = (-67 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-82 - rssifromkalman)/(10.0 * 2.0)
                     ratio2 = (-67 - rssi2)/(10.0 * 2.0)
                     ratio3 = (-67 - rssi3)/(10.0 * 2.0)
 
                 elif key == "3T":
-                    ratio = (-60 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-72 - rssifromkalman)/(10.0 * 2.0)
                     ratio2 = (-60 - rssi2)/(10.0 * 2.0)
                     ratio3 = (-60 - rssi3)/(10.0 * 2.0)
 
@@ -450,12 +450,11 @@ class BTScan():
                         self.BT_1.setFloor(self.locationlist[choose][3])
                         self.BT_1.setRoom(self.locationlist[choose][4])
 
-
                         self.BT_1.setXcoord(Xcoord)
                         self.BT_1.setYcoord(Ycoord)
                         self.BT_1.setDevice_name(str(key))
                         self.BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-                        self.BT_1.sendDataToWebSocket()
+                        # self.BT_1.sendDataToWebSocket()
                         time.sleep(10)
 
                     elif str(key) == "RMX50-5G":
@@ -471,7 +470,7 @@ class BTScan():
                         self.BT_2.setYcoord(Ycoord)
                         self.BT_2.setDevice_name(str(key))
                         self.BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-                        self.BT_2.sendDataToWebSocket()
+                        # self.BT_2.sendDataToWebSocket()
                         time.sleep(10)
                     
                     elif str(key) == "3T":
@@ -487,7 +486,7 @@ class BTScan():
                         self.BT_3.setYcoord(Ycoord)
                         self.BT_3.setDevice_name(str(key))
                         self.BT_3.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-                        self.BT_3.sendDataToWebSocket()
+                        # self.BT_3.sendDataToWebSocket()
                         time.sleep(10)
 
                     else:
@@ -503,7 +502,7 @@ class BTScan():
                     
             self.resetLocationdict()
             print("\n")
-            time.sleep(10)
+            time.sleep(5)
 
 
 

@@ -203,25 +203,25 @@ class BTScanOther():
                 rssifromkalman = self.kalman_filter.current_state()
                 # ratio = (-71 - rssi)/(10.0 * 2.0)
                 if (key == "Mi Smart Band 4"):
-                    ratio = (-54 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-74 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
                 elif(key == "RMX50-5G"):
-                    ratio = (-57 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-78 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
                 elif(key == "3T"):
-                    ratio = (-49 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-70 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
                 else:
-                    ratio = (-60 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-64 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
