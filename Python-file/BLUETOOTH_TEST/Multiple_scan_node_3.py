@@ -113,9 +113,9 @@ class BTScanOther():
         A = 1  # No process innovation
         C = 1  # Measurement
         B = 0  # No control input
-        Q = 1  # Process covariance
-        R = 1  # Measurement covariance
-        x = 36  # Initial estimate
+        Q = 0.03  # Process covariance
+        R = 0.2  # Measurement covariance
+        x = 60  # Initial estimate
         P = 2  # Initial covariance
 
         self.kalman_filter = SingleStateKalmanFilter(A, B, C, x, P, Q, R) 
@@ -195,37 +195,43 @@ class BTScanOther():
                 # print(key, ":", self.rssidict[key])
                 rssi = max(self.rssidict[key], key=self.rssidict[key].count)
 
+                print(key, ":", self.rssidict[key])
                 rssifromkalman_estimates = []
                 for i in self.rssidict[key]:
-                    rssifromkalman = self.kalman_filter.step(0,i)
+                    rssifromkalman = self.kalman_filter.step(60,i)
                     rssifromkalman_estimates.append(self.kalman_filter.current_state())
-                # print("Kalman estimation: ", rssifromkalman_estimates)
+                print("Kalman estimation: ", rssifromkalman_estimates)
                 rssifromkalman = self.kalman_filter.current_state()
                 # ratio = (-71 - rssi)/(10.0 * 2.0)
                 if (key == "Mi Smart Band 4"):
-                    ratio = (-74 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-69 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
+                    print()
                 elif(key == "RMX50-5G"):
-                    ratio = (-78 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-73 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
+                    print()
                 elif(key == "3T"):
                     ratio = (-70 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
+                    print()
                 else:
                     ratio = (-64 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
+                    print()
+                self.kalman_filter.reset()
             time.sleep(1)
 
 
