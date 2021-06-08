@@ -74,13 +74,13 @@ class IPS_NODE ():
             self.API_ENDPOINT = API_ENDPOINT
             headers = {'Content-type': 'application/json'}
             r = requests.post(url=self.API_ENDPOINT, json=self.setJsonData(), headers=headers)
-            print("----------*** (BT_TAG_1) SEND DATA TO WEB SERVER LEAW ***----------")
+            print("----------*** (BT_TAG_3) SEND DATA TO WEB SERVER LEAW ***----------")
             print('STATUS_CODE : ' + str(r.status_code))
         
         except ConnectionResetError:
-            print("----------*** (BT_TAG_1) CONNECTION RESET BY PEER ***----------")
+            print("----------*** (BT_TAG_3) CONNECTION RESET BY PEER ***----------")
         except OSError:
-            print("----------*** (BT_TAG_1) OSError: [Errno 0] Error ***----------")
+            print("----------*** (BT_TAG_3) OSError: [Errno 0] Error ***----------")
 
 
         # r.text is the content of the response in Unicode
@@ -102,7 +102,7 @@ class IPS_NODE ():
         print ('Got connection from', addr )
         c.send(bytes(self.setJsonData(), encoding='utf8'))
         c.close()
-        print("----------*** (BT_TAG_1) SEND DATA TO SCADA LEAW ***----------")
+        print("----------*** (BT_TAG_3) SEND DATA TO SCADA LEAW ***----------")
 
 
 if __name__== "__main__":
@@ -118,11 +118,11 @@ if __name__== "__main__":
 
         
         # (ECC BUILDING) KMITL
-        BT_3.setLatitude(13.729085)
-        BT_3.setLongtitude(100.775741)
-        BT_3.setLocation("ECC Building")
-        BT_3.setFloor(7)
-        BT_3.setRoom("ECC-704")
+        # BT_3.setLatitude(13.729085)
+        # BT_3.setLongtitude(100.775741)
+        # BT_3.setLocation("ECC Building")
+        # BT_3.setFloor(7)
+        # BT_3.setRoom("ECC-704")
         
         # ARL LATKRABNG
         BT_3.setLatitude(13.72794)
@@ -132,16 +132,16 @@ if __name__== "__main__":
         BT_3.setRoom("-")
 
         # SIAM_PARAGON
-        BT_3.setLatitude(13.7462)
-        BT_3.setLongtitude(100.5347)
-        BT_3.setLocation("SIAM Paragon")
-        BT_3.setFloor(2)
-        BT_3.setRoom("SP-321")
+        # BT_3.setLatitude(13.7462)
+        # BT_3.setLongtitude(100.5347)
+        # BT_3.setLocation("SIAM Paragon")
+        # BT_3.setFloor(2)
+        # BT_3.setRoom("SP-321")
 
         print("[BT_1] LA : ", BT_3.latitude)
         print("[BT_1] LONG : ", BT_3.longtitude)
-        # BT_1.sendDataToMQTT()
-        # BT_1.sendDataToWebSocket()
-        # BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-        BT_3.sendDataToServer('http://127.0.0.1:8080/getLocation/')
-        time.sleep(30)
+        # BT_3.sendDataToMQTT()
+        # BT_3.sendDataToWebSocket()
+        BT_3.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+        # BT_3.sendDataToServer('http://127.0.0.1:8080/getLocation/')
+        time.sleep(20)

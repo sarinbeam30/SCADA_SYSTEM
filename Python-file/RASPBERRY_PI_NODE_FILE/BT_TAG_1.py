@@ -126,23 +126,26 @@ if __name__== "__main__":
         BT_1.setRoom("ECC-704")
         
         # ARL LATKRABNG
-        BT_1.setLatitude(13.72794)
-        BT_1.setLongtitude(100.74748)
+        # BT_1.setLatitude(13.72794)
+        # BT_1.setLongtitude(100.74748)
         # BT_1.setLocation("Airport Rail Link Lat Krabang")
         # BT_1.setFloor(2)
         # BT_1.setRoom("-")
 
         # SIAM_PARAGON
-        BT_1.setLatitude(13.7462)
-        BT_1.setLongtitude(100.5347)
-        BT_1.setLocation("SIAM Paragon")
-        BT_1.setFloor(2)
-        BT_1.setRoom("SP-321")
+        # BT_1.setLatitude(13.7462)
+        # BT_1.setLongtitude(100.5347)
+        # BT_1.setLocation("SIAM Paragon")
+        # BT_1.setFloor(2)
+        # BT_1.setRoom("SP-321")
 
         print("[BT_1] LA : ", BT_1.latitude)
         print("[BT_1] LONG : ", BT_1.longtitude)
+        print("[BT_1] X : ", BT_1.x_coord)
+        print("[BT_1] Y : ", BT_1.y_coord)
+        
         # BT_1.sendDataToMQTT()
         # BT_1.sendDataToWebSocket()
         BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
         # BT_1.sendDataToServer('http://127.0.0.1:8080/getLocation/')
-        time.sleep(30)
+        time.sleep(10)

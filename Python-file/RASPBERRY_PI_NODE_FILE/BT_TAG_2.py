@@ -79,6 +79,8 @@ class IPS_NODE ():
             print('STATUS_CODE : ' + str(r.status_code))
         except ConnectionResetError:
             print("----------*** (BT_TAG_2) CONNECTION RESET BY PEER ***----------")
+        except OSError:
+            print("----------*** (BT_TAG_1) OSError: [Errno 0] Error ***----------")
 
         # r.text is the content of the response in Unicode
         # pastebin_url = r.text
@@ -113,18 +115,18 @@ if __name__== "__main__":
         BT_2.setBtTagOwner("window_1234")
 
         # (ECC BUILDING) KMITL
-        BT_2.setLatitude(13.729085)
-        BT_2.setLongtitude(100.775741)
-        BT_2.setLocation("ECC Building")
-        BT_2.setFloor(7)
-        BT_2.setRoom("ECC-704")
+        # BT_2.setLatitude(13.729085)
+        # BT_2.setLongtitude(100.775741)
+        # BT_2.setLocation("ECC Building")
+        # BT_2.setFloor(7)
+        # BT_2.setRoom("ECC-704")
         
         # ARL LATKRABNG
-        BT_2.setLatitude(13.72794)
-        BT_2.setLongtitude(100.74748)
-        BT_2.setLocation("Airport Rail Link Lat Krabang")
-        BT_2.setFloor(2)
-        BT_2.setRoom("-")
+        # BT_2.setLatitude(13.72794)
+        # BT_2.setLongtitude(100.74748)
+        # BT_2.setLocation("Airport Rail Link Lat Krabang")
+        # BT_2.setFloor(2)
+        # BT_2.setRoom("-")
 
         # SIAM_PARAGON
         BT_2.setLatitude(13.7462)
@@ -137,6 +139,6 @@ if __name__== "__main__":
         print("[BT_2] LONG : ", BT_2.longtitude)
         # BT_2.sendDataToRabbitMQTT()
         # BT_2.sendDataToWebSocket()
-        # BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-        BT_2.sendDataToServer('http://127.0.0.1:8080/getLocation/')
-        time.sleep(30)
+        BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+        # BT_2.sendDataToServer('http://127.0.0.1:8080/getLocation/')
+        time.sleep(43)
