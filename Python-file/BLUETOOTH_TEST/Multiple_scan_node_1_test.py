@@ -11,6 +11,7 @@ import json
 import socket
 import requests
 import statistics
+import random
 
 ID = sys.argv[0]+str(os.getpid())
 mclient = client.Client(ID)
@@ -23,6 +24,8 @@ node3distance = 0.0
 tempdist2 = 0.0
 tempdist3 = 0.0
 scanner = Scanner()
+
+random.seed()
 
 
 class ScanDelegate(DefaultDelegate):
@@ -82,6 +85,7 @@ class IPS_NODE ():
         self.room = room
         self.x_coord = 0
         self.y_coord = 0
+        self.dev_addr = ""
 
     def setDevice_name(self, name):
         self.device_name = name
@@ -93,7 +97,7 @@ class IPS_NODE ():
         self.latitude = latitude
     
     def setLongtitude(self, longtitude):
-        self.long = longtitude
+        self.longtitude = longtitude
 
     def setXcoord(self, x):
         # self.x_coord = 9.999
@@ -102,6 +106,18 @@ class IPS_NODE ():
     def setYcoord(self, y):
         #self.y_coord = 10.000
         self.y_coord = y
+
+    def setLocation(self, location):
+        self.location = location
+    
+    def setFloor(self, floor):
+        self.floor = floor
+    
+    def setRoom(self, room):
+        self.room = room
+    
+    def setDevaddr(self, devaddr):
+        self.dev_addr = devaddr
 
     def setJsonData(self):
         dummy_data = {
@@ -114,6 +130,7 @@ class IPS_NODE ():
             "ROOM": self.room,
             "X_COORD": self.x_coord,
             "Y_COORD": self.y_coord,
+            "BT_MAC_ADDR" : self.dev_addr,
         }
 
         json_data = json.dumps(dummy_data)
@@ -125,7 +142,7 @@ class IPS_NODE ():
         headers = {'Content-type': 'application/json'}
         r = requests.post(url=self.API_ENDPOINT,
                           json=self.setJsonData(), headers=headers)
-        print("----------*** (BT_TAG_1) SEND DATA TO WEB SERVER LEAW ***----------")
+        print("----------*** (RPi1) SEND DATA TO WEB SERVER LEAW ***----------")
         print('STATUS_CODE : ' + str(r.status_code))
 
         # r.text is the content of the response in Unicode
@@ -142,12 +159,12 @@ class IPS_NODE ():
         s.listen(5)
         print("socket is listening")
 
-        while True:
-            c, addr = s.accept()
-            print ('Got connection from', addr )
-            c.send(bytes(self.setJsonData(), encoding='utf8'))
-            print("----------*** (BT_TAG_1) SEND DATA TO SCADA LEAW ***----------")
-            c.close()
+        # while True:
+        c, addr = s.accept()
+        print ('Got connection from', addr )
+        c.send(bytes(self.setJsonData(), encoding='utf8'))
+        c.close()
+        print("----------*** (BT_TAG_1) SEND DATA TO SCADA LEAW ***----------")
 
 class SingleStateKalmanFilter(object):
 
@@ -211,12 +228,17 @@ class BTScan():
         self.BT_2 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_2", location="ECC Building", floor=7,room="ECC-704")
         self.BT_3 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_3", location="ECC Building", floor=7,room="ECC-704")
 
+        self.locationlist = [[13.729085,100.775741,"ECC Building",7,"ECC-704"],
+                            [13.72794,100.74748,"Airport Rail Link Lat Krabang",2,"-"],
+                            [13.7462,100.5347,"SIAM Paragon",2,"SP-321"]]
+
+        self.rssiwithdevaddr = {}
         self.node1x = 0.0
-        self.node1y = 1.0
-        self.node2x = 0.0
+        self.node1y = 0.0
+        self.node2x = 3.0
         self.node2y = 0.0
-        self.node3x = -1.0
-        self.node3y = 1.0
+        self.node3x = 0.0
+        self.node3y = 3.0
 
         self.locationdict = {}
         # Initialise the Kalman Filter
@@ -224,12 +246,13 @@ class BTScan():
         A = 1  # No process innovation
         C = 1  # Measurement
         B = 0  # No control input
-        Q = 1  # Process covariance
-        R = 0.5  # Measurement covariance
+        Q = 0.04 # Process covariance
+        R = 0.3  # Measurement covariance
         x = 65  # Initial estimate
-        P = 1  # Initial covariance
+        P = 2  # Initial covariance
 
         self.kalman_filter = SingleStateKalmanFilter(A, B, C, x, P, Q, R) 
+
         
     def setBTtags(self):
         self.BT_1.setBtTagOwner("sarin_beam30")
@@ -241,7 +264,6 @@ class BTScan():
         # KMITL
         self.BT_2.setLatitude(13.729085)
         self.BT_2.setLongtitude(100.775741)
-
 
         self.BT_3.setBtTagOwner("ricky_1234")
         # KMITL
@@ -299,15 +321,28 @@ class BTScan():
             if(isinstance(keyval, list)):
                 keyval.append(rssi)
             else:
-                rssidict[devname] = list((rssi))
+                rssidict[devname] = list(rssi)
         else:
             newlist = [rssi]
             rssidict[devname] = newlist
         return rssidict
 
+    def rssidevaddrchecker(self, devaddr, devname, rssidevdict):
+        if(devname in rssidevdict):
+            keyval = rssidevdict.get(devname)
+            if(isinstance(keyval, list)):
+                i = 1
+            else:
+                rssidevdict[devname] = devaddr
+        else:
+            newaddr = devaddr
+            rssidevdict[devname] = newaddr
+        return rssidevdict
+
     def scanDevices(self):
         while(1):
             rssidict = {}
+            
             for i in range(20):
                 devices = self.scanner.scan(0.5)
                 for dev in devices:
@@ -321,6 +356,9 @@ class BTScan():
                             tempdict = self.rssilistchecker(
                                 dev.rssi, value, rssidict)
                             rssidict = tempdict
+                            temprssiwithdevaddr = self.rssidevaddrchecker(
+                                dev.addr, value, self.rssiwithdevaddr
+                            )
                             print(" Device addr = ", dev.addr)
                             print(" Device RSSI = %d" % (int(dev.rssi)))
 
@@ -334,6 +372,9 @@ class BTScan():
             # print(rssidict)
             # self.sender.setXcoord(1)
             # self.sender.setYcoord(2)
+            print("Dev addr:")
+            print(self.rssiwithdevaddr)
+            print()
             for key in rssidict:
                 print(key, ":", rssidict[key])
 
@@ -345,7 +386,7 @@ class BTScan():
 
                 rssifromkalman_estimates = []
                 for i in rssidict[key]:
-                    rssifromkalman = self.kalman_filter.step(0,i)
+                    rssifromkalman = self.kalman_filter.step(60,i)
                     rssifromkalman_estimates.append(self.kalman_filter.current_state())
                 print(rssifromkalman_estimates)
                 rssifromkalman = self.kalman_filter.current_state()
@@ -355,14 +396,19 @@ class BTScan():
                 # ratio3 = (-71 - rssi3)/(10.0 * 2.0)
 
                 if key == "Mi Smart Band 4":
-                    ratio = (-68 - rssifromkalman)/(10.0 * 2.0)
-                    ratio2 = (-68 - rssi2)/(10.0 * 2.0)
-                    ratio3 = (-68 - rssi3)/(10.0 * 2.0)
+                    ratio = (-65 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-65 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-65 - rssi3)/(10.0 * 2.0)
 
                 elif key == "RMX50-5G":
-                    ratio = (-87 - rssifromkalman)/(10.0 * 2.0)
-                    ratio2 = (-87 - rssi2)/(10.0 * 2.0)
-                    ratio3 = (-87 - rssi3)/(10.0 * 2.0)
+                    ratio = (-75 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-75 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-75 - rssi3)/(10.0 * 2.0)
+
+                elif key == "3T":
+                    ratio = (-74 - rssifromkalman)/(10.0 * 2.0)
+                    ratio2 = (-74 - rssi2)/(10.0 * 2.0)
+                    ratio3 = (-74 - rssi3)/(10.0 * 2.0)
 
                 else:
                     ratio = (-72 - rssifromkalman)/(10.0 * 2.0)
@@ -388,6 +434,7 @@ class BTScan():
                 print("")
 
                 self.rssilistchecker(distance,key,self.getLocationdict())
+                self.kalman_filter.reset()
 
             self.kalman_filter.reset()
             mclient.publish("Test/request", 1)
@@ -421,23 +468,89 @@ class BTScan():
 
                     # self.sender.setDevice_name(str(key))  
                     if str(key) == "Mi Smart Band 4":
+                        choose = random.randrange(0,len(self.locationlist),1)
+                        self.BT_1.setLatitude(self.locationlist[choose][0])
+                        self.BT_1.setLongtitude(self.locationlist[choose][1])
+                        print(self.locationlist[choose][1])
+                        self.BT_1.setLocation(self.locationlist[choose][2])
+                        self.BT_1.setFloor(self.locationlist[choose][3])
+                        self.BT_1.setRoom(self.locationlist[choose][4])
+
                         self.BT_1.setXcoord(Xcoord)
                         self.BT_1.setYcoord(Ycoord)
                         self.BT_1.setDevice_name(str(key))
+
+                        for key in self.rssiwithdevaddr:
+                            if str(key) == "Mi Smart Band 4":
+                                print("Mi band's dev addr")
+                                print(self.rssiwithdevaddr.get(key))
+                                self.BT_1.setDevaddr(self.rssiwithdevaddr.get(key))
+                        
                         self.BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        # self.BT_1.sendDataToWebSocket()
+                        time.sleep(10)
+
                     elif str(key) == "RMX50-5G":
+                        choose = random.randrange(0,len(self.locationlist),1)
+                        self.BT_2.setLatitude(self.locationlist[choose][0])
+                        print(self.locationlist[choose][1])
+                        self.BT_2.setLongtitude(self.locationlist[choose][1])
+                        self.BT_2.setLocation(self.locationlist[choose][2])
+                        self.BT_2.setFloor(self.locationlist[choose][3])
+                        self.BT_2.setRoom(self.locationlist[choose][4])
+
                         self.BT_2.setXcoord(Xcoord)
                         self.BT_2.setYcoord(Ycoord)
                         self.BT_2.setDevice_name(str(key))
+
+                        for key in self.rssiwithdevaddr:
+                            if str(key) == "RMX50-5G":
+                                print("RM50's devaddr")
+                                print(self.rssiwithdevaddr.get(key))
+                                self.BT_2.setDevaddr(self.rssiwithdevaddr.get(key))
+                        
                         self.BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        # self.BT_2.sendDataToWebSocket()
+                        time.sleep(10)
+                    
+                    elif str(key) == "3T":
+                        choose = random.randrange(0,len(self.locationlist),1)
+                        self.BT_3.setLatitude(self.locationlist[choose][0])
+                        print(self.locationlist[choose][1])
+                        self.BT_3.setLongtitude(self.locationlist[choose][1])
+                        self.BT_3.setLocation(self.locationlist[choose][2])
+                        self.BT_3.setFloor(self.locationlist[choose][3])
+                        self.BT_3.setRoom(self.locationlist[choose][4])
+
+                        self.BT_3.setXcoord(Xcoord)
+                        self.BT_3.setYcoord(Ycoord)
+                        self.BT_3.setDevice_name(str(key))
+
+                        for key in self.rssiwithdevaddr:
+                            if str(key) == "3T":
+                                print("3T's devaddr")
+                                print(self.rssiwithdevaddr.get(key))
+                                self.BT_3.setDevaddr(self.rssiwithdevaddr.get(key))
+
+                        self.BT_3.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        # self.BT_3.sendDataToWebSocket()
+                        time.sleep(10)
 
                     else:
-                        self.sender.setDevice_name(str(key))  
-                        self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        print("other device")
+                        # choose = random.randrange(0,len(self.locationlist),1)
+                        # self.sender.setLatitude(self.locationlist[choose][0])
+                        # self.sender.setLongtitude(self.locationlist[choose][1])
+                        # self.sender.setLocation(self.locationlist[choose][2])
+                        # self.sender.setFloor(self.locationlist[choose][3])
+                        # self.sender.setRoom(self.locationlist[choose][4])
+                        # self.sender.setDevice_name(str(key))  
+                        # self.sender.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
                     
             self.resetLocationdict()
             print("\n")
-            time.sleep(10)
+            self.rssiwithdevaddr = {}
+            time.sleep(5)
 
 
 
@@ -446,7 +559,8 @@ if __name__ == '__main__':
     btscanner.setBTtags()
     print("BT tags set")
     mclient.subscribe("Test/+")
-    btscanner.setDevicename("RMX50-5G")
+    # btscanner.setDevicename("RMX50-5G")
+
     # btscanner.setDevicename("ห้องทำงาน")
     mclient.on_message = on_message
     mclient.loop_start()

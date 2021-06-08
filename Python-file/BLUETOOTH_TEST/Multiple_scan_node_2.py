@@ -15,13 +15,14 @@ home = "192.168.1.38"
 beam = "192.168.1.102"
 beam2 = "192.168.1.107"
 beam3 = "192.168.1.102"
+ecc704 = "192.168.4.150"
 port = 1883
 
 nodename = "Node 2"
 
 ID = sys.argv[0]+str(os.getpid())
 mclient = client.Client(ID)
-mclient.connect(beam3, port=1883, keepalive=60)
+mclient.connect(ecc704, port=1883, keepalive=60)
 
 scanner = Scanner()
 
@@ -208,18 +209,28 @@ class BTScanOther():
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
+                    print()
                 elif(key == "RMX50-5G"):
-                    ratio = (-81 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-73 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
+                    print()
+                elif(key == "3T"):
+                    ratio = (-71 - rssifromkalman)/(10.0 * 2.0)
+                    distance = 10**ratio
+                    distance = "{:.2f}".format(distance)
+                    print("%s's distance: %.2f" % (key, float(distance)))
+                    self.distancedict[key] = float(distance)
+                    print()
                 else:
-                    ratio = (-60 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-58 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
+                    print()
                 self.kalman_filter.reset()
             time.sleep(1)
 
