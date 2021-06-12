@@ -114,7 +114,7 @@ class BTScanOther():
         A = 1  # No process innovation
         C = 1  # Measurement
         B = 0  # No control input
-        Q = 1  # Process covariance
+        Q = 0.05  # Process covariance
         R = 1  # Measurement covariance
         x = 36  # Initial estimate
         P = 2  # Initial covariance
@@ -171,7 +171,7 @@ class BTScanOther():
     def scanDevices(self):
         while(1):
             self.rssidict = {}
-            for i in range(20):
+            for i in range(30):
                 devices = self.scanner.scan(0.5)
                 for dev in devices:
                     #print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
@@ -211,14 +211,14 @@ class BTScanOther():
                     self.distancedict[key] = float(distance)
                     print()
                 elif(key == "RMX50-5G"):
-                    ratio = (-73 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-70 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
                     print()
                 elif(key == "3T"):
-                    ratio = (-71 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-79 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))

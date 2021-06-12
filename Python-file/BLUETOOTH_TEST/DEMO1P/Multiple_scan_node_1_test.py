@@ -142,7 +142,7 @@ class IPS_NODE ():
         headers = {'Content-type': 'application/json'}
         r = requests.post(url=self.API_ENDPOINT,
                           json=self.setJsonData(), headers=headers)
-        print("----------*** (RPi1) SEND DATA TO SCADA LEAW ***----------")
+        print("----------*** (RPi1) SEND DATA TO WEB SERVER LEAW ***----------")
         print('STATUS_CODE : ' + str(r.status_code))
 
         # r.text is the content of the response in Unicode
@@ -343,7 +343,7 @@ class BTScan():
         while(1):
             rssidict = {}
             
-            for i in range(15):
+            for i in range(30):
                 devices = self.scanner.scan(0.5)
                 for dev in devices:
                     #print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
@@ -396,17 +396,17 @@ class BTScan():
                 # ratio3 = (-71 - rssi3)/(10.0 * 2.0)
 
                 if key == "Mi Smart Band 4":
-                    ratio = (-65 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-80 - rssifromkalman)/(10.0 * 2.0)
                     ratio2 = (-65 - rssi2)/(10.0 * 2.0)
                     ratio3 = (-65 - rssi3)/(10.0 * 2.0)
 
                 elif key == "RMX50-5G":
-                    ratio = (-85 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-75 - rssifromkalman)/(10.0 * 2.0)
                     ratio2 = (-75 - rssi2)/(10.0 * 2.0)
                     ratio3 = (-75 - rssi3)/(10.0 * 2.0)
 
                 elif key == "3T":
-                    ratio = (-79 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-74 - rssifromkalman)/(10.0 * 2.0)
                     ratio2 = (-74 - rssi2)/(10.0 * 2.0)
                     ratio3 = (-74 - rssi3)/(10.0 * 2.0)
 
@@ -488,33 +488,11 @@ class BTScan():
                         
                         # self.BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
                         # self.BT_1.sendDataToWebSocket()
-                        time.sleep(5)
+                        # time.sleep(10)
+                        time.sleep(1)
 
                     elif str(key) == "RMX50-5G":
-                        choose = 0
-                        self.BT_1.setLatitude(self.locationlist[choose][0])
-                        print(self.locationlist[choose][1])
-                        self.BT_1.setLongtitude(self.locationlist[choose][1])
-                        self.BT_1.setLocation(self.locationlist[choose][2])
-                        self.BT_1.setFloor(self.locationlist[choose][3])
-                        self.BT_1.setRoom(self.locationlist[choose][4])
-
-                        self.BT_1.setXcoord(Xcoord)
-                        self.BT_1.setYcoord(Ycoord)
-                        self.BT_1.setDevice_name(str(key))
-
-                        for key in self.rssiwithdevaddr:
-                            if str(key) == "RMX50-5G":
-                                print("RM50's devaddr")
-                                print(self.rssiwithdevaddr.get(key))
-                                self.BT_1.setDevaddr(self.rssiwithdevaddr.get(key))
-                        
-                        self.BT_1.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
-                        # self.BT_2.sendDataToWebSocket()
-                        time.sleep(5)
-                    
-                    elif str(key) == "3T":
-                        choose = 0
+                        choose = random.randrange(0,len(self.locationlist),1)
                         self.BT_2.setLatitude(self.locationlist[choose][0])
                         print(self.locationlist[choose][1])
                         self.BT_2.setLongtitude(self.locationlist[choose][1])
@@ -527,14 +505,39 @@ class BTScan():
                         self.BT_2.setDevice_name(str(key))
 
                         for key in self.rssiwithdevaddr:
+                            if str(key) == "RMX50-5G":
+                                print("RM50's devaddr")
+                                print(self.rssiwithdevaddr.get(key))
+                                self.BT_2.setDevaddr(self.rssiwithdevaddr.get(key))
+                        
+                        # self.BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        # self.BT_2.sendDataToWebSocket()
+                        # time.sleep(10)
+                        time.sleep(1)
+                    
+                    elif str(key) == "3T":
+                        choose = random.randrange(0,len(self.locationlist),1)
+                        self.BT_3.setLatitude(self.locationlist[choose][0])
+                        print(self.locationlist[choose][1])
+                        self.BT_3.setLongtitude(self.locationlist[choose][1])
+                        self.BT_3.setLocation(self.locationlist[choose][2])
+                        self.BT_3.setFloor(self.locationlist[choose][3])
+                        self.BT_3.setRoom(self.locationlist[choose][4])
+
+                        self.BT_3.setXcoord(Xcoord)
+                        self.BT_3.setYcoord(Ycoord)
+                        self.BT_3.setDevice_name(str(key))
+
+                        for key in self.rssiwithdevaddr:
                             if str(key) == "3T":
                                 print("3T's devaddr")
                                 print(self.rssiwithdevaddr.get(key))
-                                self.BT_2.setDevaddr(self.rssiwithdevaddr.get(key))
+                                self.BT_3.setDevaddr(self.rssiwithdevaddr.get(key))
 
-                        self.BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
+                        # self.BT_3.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
                         # self.BT_3.sendDataToWebSocket()
-                        time.sleep(5)
+                        # time.sleep(10)
+                        time.sleep(1)
 
                     else:
                         print("other device")

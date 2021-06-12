@@ -2,8 +2,8 @@ from bluepy.btle import Scanner, DefaultDelegate, Peripheral
 import bluepy.btle as btle
 from collections import Counter
 import sys, os, time, calendar, datetime, threading, json, socket, requests
+import statistics
 
-results = []
 kalman_results = []
 
 class SingleStateKalmanFilter(object):
@@ -59,12 +59,13 @@ class BTScan():
         self.scanner = Scanner()
         self.measured_power = mp
         self.devicename = "" #default
+        self.results = []
 
         A = 1  # No process innovation
         C = 1  # Measurement
         B = 0  # No control input
-        Q = 1  # Process covariance
-        R = 1  # Measurement covariance
+        Q = 0.04  # Process covariance
+        R = 0.3  # Measurement covariance
         x = 64  # Initial estimate
         P = 2  # Initial covariance
 
@@ -75,11 +76,14 @@ class BTScan():
 
     def getDevicename(self):
         return self.devicename
+
+    def clearResults(self):
+        self.results = []
     
     def scanDevices(self):
         while(1):
             rssilist = []
-            for i in range(20):
+            for i in range(100):
                 devices = self.scanner.scan(0.5)
                 for dev in devices:
                     for (adtype, desc, value) in dev.getScanData():
@@ -94,16 +98,22 @@ class BTScan():
                                 rssi = dev.rssi
                                 ratio = (self.measured_power - rssi)/(10.0 * 2.0)
                                 distance = 10**ratio 
-                                print(" Distance (m) = %.2f" % distance)
+                                # print(" Distance (m) = %.2f" % distance)
                                 print("")
             if len(rssilist) == 0:
                 self.node1distance = 0.0
             else:
+                print("Device name: ", self.devicename)
                 print("List size: %d" % len(rssilist))
+                print()
                 print("RSSI: ", rssilist)
-                print("RSSI mode ", max(rssilist, key = rssilist.count))
-                results.append("from mode") 
-                results.append(max(rssilist, key = rssilist.count))
+                print("RSSI from mode: ", max(rssilist, key = rssilist.count))
+                print("RSSI from mean: ", statistics.mean(rssilist))
+                print()
+                self.results.append("from mode") 
+                self.results.append(max(rssilist, key = rssilist.count))
+                self.results.append("from mean")
+                self.results.append(statistics.mean(rssilist))
 
 
                 
@@ -112,17 +122,21 @@ class BTScan():
                     self.kalman_filter.step(0,i)
                     rssifromkalman_estimates.append(self.kalman_filter.current_state())
                 print(rssifromkalman_estimates)
+                print()
+                print("RSSI from kalman: ", rssifromkalman_estimates[-1])
 
-                results.append("from kalman") 
-                results.append(rssifromkalman_estimates[-1])
-                results.append("sample size") 
-                results.append(len(rssilist))
+                self.results.append("from kalman") 
+                self.results.append(rssifromkalman_estimates[-1])
+                self.results.append("sample size")
+                self.results.append(len(rssilist))
+                self.results.append("") 
                 time.sleep(3)
             
-            rssilist = []
             time.sleep(1)
-            print(results)
+            for eachresult in self.results:
+                print(eachresult)
             self.kalman_filter.reset()
+            
 
 if __name__ == "__main__":
     bts = BTScan(-64)

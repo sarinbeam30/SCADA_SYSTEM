@@ -211,14 +211,14 @@ class BTScanOther():
                     self.distancedict[key] = float(distance)
                     print()
                 elif(key == "RMX50-5G"):
-                    ratio = (-70 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-73 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
                     print()
                 elif(key == "3T"):
-                    ratio = (-74 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-71 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
@@ -238,7 +238,7 @@ class BTScanOther():
 if __name__ == "__main__":
     btscanner = BTScanOther()
     # btscanner.setDevicename("ห้องทำงาน")
-    btscanner.setDevicename("RMX50-5G")
+    btscanner.setDevicename("3T")
 
     mclient.subscribe("Test/request")
     mclient.on_message = on_message
