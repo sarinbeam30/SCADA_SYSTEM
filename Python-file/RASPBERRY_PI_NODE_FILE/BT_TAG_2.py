@@ -115,11 +115,11 @@ if __name__== "__main__":
         BT_2.setBtTagOwner("window_1234")
 
         # (ECC BUILDING) KMITL
-        # BT_2.setLatitude(13.729085)
-        # BT_2.setLongtitude(100.775741)
-        # BT_2.setLocation("ECC Building")
-        # BT_2.setFloor(7)
-        # BT_2.setRoom("ECC-704")
+        BT_2.setLatitude(13.729085)
+        BT_2.setLongtitude(100.775741)
+        BT_2.setLocation("ECC Building")
+        BT_2.setFloor(7)
+        BT_2.setRoom("ECC-704")
         
         # ARL LATKRABNG
         # BT_2.setLatitude(13.72794)
@@ -129,11 +129,11 @@ if __name__== "__main__":
         # BT_2.setRoom("-")
 
         # SIAM_PARAGON
-        BT_2.setLatitude(13.7462)
-        BT_2.setLongtitude(100.5347)
-        BT_2.setLocation("SIAM Paragon")
-        BT_2.setFloor(2)
-        BT_2.setRoom("SP-321")
+        # BT_2.setLatitude(13.7462)
+        # BT_2.setLongtitude(100.5347)
+        # BT_2.setLocation("SIAM Paragon")
+        # BT_2.setFloor(2)
+        # BT_2.setRoom("SP-321")
         
         print("[BT_2] LA : ", BT_2.latitude)
         print("[BT_2] LONG : ", BT_2.longtitude)
@@ -141,4 +141,4 @@ if __name__== "__main__":
         # BT_2.sendDataToWebSocket()
         BT_2.sendDataToServer('https://protected-brook-89084.herokuapp.com/getLocation/')
         # BT_2.sendDataToServer('http://127.0.0.1:8080/getLocation/')
-        time.sleep(43)
+        time.sleep(10)

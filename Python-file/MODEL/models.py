@@ -4379,7 +4379,7 @@ class IndoorPositioningSystemDevice_Connection(Connection):
                 temp = self.write_out() # check anything to write first
 
                 count += 1
-                if count % 20 != 1:
+                if count % 10 != 1:
                     #print("(Count = " + str(count) + " ) Ko Check Noi")
                     continue
 

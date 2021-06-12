@@ -110,7 +110,7 @@ class IPS_NODE ():
 if __name__== "__main__":
 
     while True :
-        BT_1 = IPS_NODE(IP_address="192.168.4.150", device_name="BT_TAG_1", location="ECC Building", floor=7,room="ECC-704")
+        BT_1 = IPS_NODE(IP_address="192.168.4.150", device_name="Mi Smart Band 4", location="ECC Building", floor=7,room="ECC-704")
         # BT_1 = IPS_NODE(IP_address="127.0.0.1", device_name="BT_TAG_1", location="ABC Building", floor=7,room="ECC-804")
         
         random.seed()
@@ -119,11 +119,11 @@ if __name__== "__main__":
         BT_1.setBtTagOwner("sarin_beam30")
 
         # (ECC BUILDING) KMITL
-        BT_1.setLatitude(13.729085)
-        BT_1.setLongtitude(100.775741)
-        BT_1.setLocation("ECC Building")
-        BT_1.setFloor(7)
-        BT_1.setRoom("ECC-704")
+        # BT_1.setLatitude(13.729085)
+        # BT_1.setLongtitude(100.775741)
+        # BT_1.setLocation("ECC Building")
+        # BT_1.setFloor(7)
+        # BT_1.setRoom("ECC-704")
         
         # ARL LATKRABNG
         # BT_1.setLatitude(13.72794)
@@ -133,11 +133,22 @@ if __name__== "__main__":
         # BT_1.setRoom("-")
 
         # SIAM_PARAGON
-        # BT_1.setLatitude(13.7462)
-        # BT_1.setLongtitude(100.5347)
-        # BT_1.setLocation("SIAM Paragon")
-        # BT_1.setFloor(2)
-        # BT_1.setRoom("SP-321")
+        BT_1.setLatitude(13.7462)
+        BT_1.setLongtitude(100.5347)
+        BT_1.setLocation("SIAM Paragon")
+        BT_1.setFloor(2)
+        BT_1.setRoom("SP-321")
+
+        # BAIYOKE TOWER II
+        # BT_1.setLatitude(13.7544)
+        # BT_1.setLongtitude(100.5404)
+        # BT_1.setLocation("Baiyoke Tower 2")
+        # BT_1.setFloor(10)
+        # BT_1.setRoom("BY-96")
+
+        # FYI Center
+
+
 
         print("[BT_1] LA : ", BT_1.latitude)
         print("[BT_1] LONG : ", BT_1.longtitude)
