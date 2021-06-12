@@ -176,21 +176,22 @@ class BTScanOther():
                     #print("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
                     for (adtype, desc, value) in dev.getScanData():
                         if(desc == "Complete Local Name"):
-                            print("")
-                            print(" %s = %s" % (desc, value))
-                            tempdict = self.rssilistchecker(
-                                dev.rssi, value, self.rssidict)
-                            self.rssidict = tempdict
-                            print(" Device addr = ", dev.addr)
-                            print(" Device RSSI = %d" % (int(dev.rssi)))
-                            rssi = dev.rssi
-                            # ratio = (-71 - rssi)/(10.0 * 2.0)
-                            # ratio = (-52 - rssi)/(10.0 * 2.0)
-                            # distance = 10**ratio
-                            # print(" Distance (m) = %.2f" % distance)
-                            print("")
-                            # else:
-                            #     pass
+                            if(value == self.devicename): 
+                                print("")
+                                print(" %s = %s" % (desc, value))
+                                tempdict = self.rssilistchecker(
+                                    dev.rssi, value, self.rssidict)
+                                self.rssidict = tempdict
+                                print(" Device addr = ", dev.addr)
+                                print(" Device RSSI = %d" % (int(dev.rssi)))
+                                rssi = dev.rssi
+                                # ratio = (-71 - rssi)/(10.0 * 2.0)
+                                # ratio = (-52 - rssi)/(10.0 * 2.0)
+                                # distance = 10**ratio
+                                # print(" Distance (m) = %.2f" % distance)
+                                print("")
+                                # else:
+                                #     pass
             for key in self.rssidict:
                 # print(key, ":", self.rssidict[key])
                 rssi = max(self.rssidict[key], key=self.rssidict[key].count)
@@ -211,14 +212,14 @@ class BTScanOther():
                     self.distancedict[key] = float(distance)
                     print()
                 elif(key == "RMX50-5G"):
-                    ratio = (-70 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-73 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
                     print()
                 elif(key == "3T"):
-                    ratio = (-74 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-77 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
@@ -238,7 +239,7 @@ class BTScanOther():
 if __name__ == "__main__":
     btscanner = BTScanOther()
     # btscanner.setDevicename("ห้องทำงาน")
-    btscanner.setDevicename("RMX50-5G")
+    btscanner.setDevicename("3T")
 
     mclient.subscribe("Test/request")
     mclient.on_message = on_message

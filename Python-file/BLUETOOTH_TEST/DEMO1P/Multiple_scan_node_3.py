@@ -211,14 +211,14 @@ class BTScanOther():
                     self.distancedict[key] = float(distance)
                     print()
                 elif(key == "RMX50-5G"):
-                    ratio = (-70 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-80 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
                     self.distancedict[key] = float(distance)
                     print()
                 elif(key == "3T"):
-                    ratio = (-74 - rssifromkalman)/(10.0 * 2.0)
+                    ratio = (-70 - rssifromkalman)/(10.0 * 2.0)
                     distance = 10**ratio
                     distance = "{:.2f}".format(distance)
                     print("%s's distance: %.2f" % (key, float(distance)))
